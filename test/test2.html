@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Squares Game</title>
+    <style>
+      canvas {
+        background: #eee;
+        display: block;
+        margin: 20px auto;
+        border: 2px solid #333;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+    <script>
+      // Setup
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+
+      const player = {
+        x: 50,
+        y: 50,
+        size: 30,
+        color: 'blue',
+        speed: 5,
+      }
+
+      const enemies = []
+      for (let i = 0; i < 5; i++) {
+        enemies.push({
+          x: Math.random() * 470,
+          y: Math.random() * 470,
+          size: 30,
+          color: 'red',
+          dx: (Math.random() - 0.5) * 4,
+          dy: (Math.random() - 0.5) * 4,
+        })
+      }
+
+      let keys = {}
+
+      // Event listeners for player movement
+      document.addEventListener('keydown', (e) => {
+        keys[e.key] = true
+      })
+
+      document.addEventListener('keyup', (e) => {
+        keys[e.key] = false
+      })
+
+      // Update player and enemy positions
+      function update() {
+        if (keys['ArrowUp']) player.y -= player.speed
+        if (keys['ArrowDown']) player.y += player.speed
+        if (keys['ArrowLeft']) player.x -= player.speed
+        if (keys['ArrowRight']) player.x += player.speed
+
+        // Keep player inside the canvas
+        player.x = Math.max(0, Math.min(canvas.width - player.size, player.x))
+        player.y = Math.max(0, Math.min(canvas.height - player.size, player.y))
+
+        enemies.forEach((enemy) => {
+          enemy.x += enemy.dx
+          enemy.y += enemy.dy
+
+          // Bounce off walls
+          if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) enemy.dx *= -1
+          if (enemy.y <= 0 || enemy.y + enemy.size >= canvas.height) enemy.dy *= -1
+        })
+      }
+
+      // Draw everything
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Draw player
+        ctx.fillStyle = player.color
+        ctx.fillRect(player.x, player.y, player.size, player.size)
+
+        // Draw enemies
+        enemies.forEach((enemy) => {
+          ctx.fillStyle = enemy.color
+          ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size)
+        })
+      }
+
+      // Game loop
+      function gameLoop() {
+        update()
+        draw()
+        requestAnimationFrame(gameLoop)
+      }
+
+      // Start the game
+      gameLoop()
+    </script>
+  </body>
+</html>

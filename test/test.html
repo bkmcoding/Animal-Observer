@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wildlife Watcher</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        background: linear-gradient(to bottom, #87ceeb, #1e90ff);
+      }
+      canvas {
+        display: block;
+      }
+      #ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        width: 200px;
+      }
+      #clipboard {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="%23ffffff" d="M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm144 418c0 3.3-2.7 6-6 6H54c-3.3 0-6-2.7-6-6V118c0-3.3 2.7-6 6-6h42v36c0 6.6 5.4 12 12 12h168c6.6 0 12-5.4 12-12v-36h42c3.3 0 6 2.7 6 6v340z"/></svg>')
+          no-repeat center center;
+        background-size: contain;
+        width: 250px;
+        height: 300px;
+        padding: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      #stats {
+        background: white;
+        width: 180px;
+        height: 200px;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-y: auto;
+      }
+      #countForm {
+        display: none;
+        background: white;
+        width: 180px;
+        height: 200px;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-y: auto;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 15px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      input {
+        width: 50px;
+        margin: 5px;
+      }
+      .hill {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(to right, #8b4513, #a0522d);
+        border-top-left-radius: 50% 60px;
+        border-top-right-radius: 50% 60px;
+      }
+      .instructions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        width: 200px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="hill"></div>
+    <div id="ui">
+      <h2>Wildlife Watcher</h2>
+      <div>Round: <span id="round">1</span></div>
+      <div>Time: <span id="timer">60</span>s</div>
+      <button id="startRound">Start Round</button>
+    </div>
+    <div id="clipboard">
+      <div id="stats">Press "Start Round" to begin observing!</div>
+      <div id="countForm">
+        <h3>Submit Counts</h3>
+        <label>Eaten: <input type="number" id="eatenGuess" min="0" /></label><br />
+        <label>Bred: <input type="number" id="bredGuess" min="0" /></label><br />
+        <label>Chased: <input type="number" id="chasedGuess" min="0" /></label><br />
+        <button id="submitCounts">Submit</button>
+      </div>
+    </div>
+    <div class="instructions">
+      <h3>How to Play:</h3>
+      <ol>
+        <li>Click "Start Round"</li>
+        <li>Watch animals interact</li>
+        <li>Count the actions</li>
+        <li>Submit your counts</li>
+        <li>See how close you were!</li>
+      </ol>
+    </div>
+
+    <script>
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+      const roundDisplay = document.getElementById('round')
+      const timerDisplay = document.getElementById('timer')
+      const statsDisplay = document.getElementById('stats')
+      const countForm = document.getElementById('countForm')
+      const startRoundBtn = document.getElementById('startRound')
+      const submitCountsBtn = document.getElementById('submitCounts')
+      const eatenGuessInput = document.getElementById('eatenGuess')
+      const bredGuessInput = document.getElementById('bredGuess')
+      const chasedGuessInput = document.getElementById('chasedGuess')
+
+      // Set canvas size
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+
+      // Game state
+      let round = 1
+      let animals = []
+      let interactions = {
+        eaten: 0,
+        bred: 0,
+        chased: 0,
+      }
+      let isCounting = false
+      let playerScore = 0
+      let roundTimer = 60
+      let timerInterval
+
+      // Slower game speed (lower = slower)
+      const GAME_SPEED = 0.5
+
+      // Animal types
+      const ANIMAL_TYPES = {
+        RABBIT: {
+          name: 'Rabbit',
+          emoji: '🐇',
+          color: '#F5F5DC',
+          size: 12,
+          speed: 1.5 * GAME_SPEED,
+          hungerRate: 0.01 * GAME_SPEED,
+          food: ['GRASS'],
+          breedChance: 0.05,
+          maxAge: 1500,
+          vision: 100,
+          maxCount: 15,
+        },
+        FOX: {
+          name: 'Fox',
+          emoji: '🦊',
+          color: '#FF8C00',
+          size: 18,
+          speed: 2 * GAME_SPEED,
+          hungerRate: 0.015 * GAME_SPEED,
+          food: ['RABBIT'],
+          breedChance: 0.04,
+          maxAge: 1200,
+          vision: 150,
+          maxCount: 8,
+        },
+        WOLF: {
+          name: 'Wolf',
+          emoji: '🐺',
+          color: '#808080',
+          size: 24,
+          speed: 2.2 * GAME_SPEED,
+          hungerRate: 0.02 * GAME_SPEED,
+          food: ['RABBIT', 'FOX'],
+          breedChance: 0.03,
+          maxAge: 1000,
+          vision: 200,
+          maxCount: 5,
+        },
+        DEER: {
+          name: 'Deer',
+          emoji: '🦌',
+          color: '#CD853F',
+          size: 30,
+          speed: 2 * GAME_SPEED,
+          hungerRate: 0.01 * GAME_SPEED,
+          food: ['GRASS'],
+          breedChance: 0.04,
+          maxAge: 1300,
+          vision: 180,
+          maxCount: 6,
+        },
+        GRASS: {
+          name: 'Grass',
+          emoji: '🌱',
+          color: '#7CFC00',
+          size: 8,
+          regrowTime: 500,
+        },
+      }
+
+      // Initialize game
+      function init() {
+        // Create initial animals
+        for (let i = 0; i < 6; i++) createAnimal('RABBIT')
+        for (let i = 0; i < 3; i++) createAnimal('FOX')
+        for (let i = 0; i < 2; i++) createAnimal('WOLF')
+        for (let i = 0; i < 3; i++) createAnimal('DEER')
+
+        // Create grass patches
+        for (let i = 0; i < 20; i++) createGrass()
+
+        // Start game loop
+        gameLoop()
+      }
+
+      // Create a new animal
+      function createAnimal(type, x, y) {
+        // Don't exceed max count for this type
+        const currentCount = animals.filter((a) => a.type === type).length
+        if (currentCount >= ANIMAL_TYPES[type].maxCount) return null
+
+        const animalType = ANIMAL_TYPES[type]
+        const animal = {
+          type: type,
+          name: animalType.name,
+          emoji: animalType.emoji,
+          color: animalType.color,
+          x: x || Math.random() * canvas.width,
+          y: y || Math.random() * (canvas.height - 200),
+          size: animalType.size,
+          speed: animalType.speed,
+          hunger: 100,
+          hungerRate: animalType.hungerRate,
+          food: animalType.food,
+          target: null,
+          dx: 0,
+          dy: 0,
+          age: 0,
+          maxAge: animalType.maxAge,
+          breedCooldown: 0,
+          breedChance: animalType.breedChance,
+          vision: animalType.vision,
+          wandering: 0,
+        }
+        animals.push(animal)
+        return animal
+      }
+
+      // Create grass
+      function createGrass(x, y) {
+        const grass = {
+          type: 'GRASS',
+          name: ANIMAL_TYPES.GRASS.name,
+          emoji: ANIMAL_TYPES.GRASS.emoji,
+          color: ANIMAL_TYPES.GRASS.color,
+          x: x || Math.random() * canvas.width,
+          y: y || Math.random() * (canvas.height - 200),
+          size: ANIMAL_TYPES.GRASS.size,
+          eaten: false,
+          regrowTimer: 0,
+          regrowTime: ANIMAL_TYPES.GRASS.regrowTime,
+        }
+        animals.push(grass)
+        return grass
+      }
+
+      // Game loop
+      function gameLoop() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Draw sky
+        ctx.fillStyle = '#87CEEB'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+        // Draw field
+        ctx.fillStyle = '#7CFC00'
+        ctx.fillRect(0, canvas.height - 200, canvas.width, 200)
+
+        // Update and draw animals
+        updateAnimals()
+
+        // Draw hill overlay
+        ctx.fillStyle = 'rgba(139, 69, 19, 0.3)'
+        ctx.beginPath()
+        ctx.moveTo(0, canvas.height)
+        ctx.quadraticCurveTo(canvas.width / 2, canvas.height - 150, canvas.width, canvas.height)
+        ctx.fill()
+
+        // Request next frame
+        requestAnimationFrame(gameLoop)
+      }
+
+      // Update all animals
+      function updateAnimals() {
+        // Filter out dead animals and grass that's regrowing
+        animals = animals.filter((animal) => {
+          if (animal.type === 'GRASS' && animal.eaten) {
+            animal.regrowTimer++
+            if (animal.regrowTimer >= animal.regrowTime) {
+              animal.eaten = false
+              animal.regrowTimer = 0
+            }
+            return true
+          }
+          return !(animal.age >= animal.maxAge)
+        })
+
+        // Update each animal
+        animals.forEach((animal) => {
+          if (animal.type === 'GRASS') {
+            drawGrass(animal)
+          } else {
+            updateCreature(animal)
+            drawCreature(animal)
+          }
+        })
+
+        // Update stats display if counting
+        if (isCounting) {
+          updateStats()
+        }
+      }
+
+      // Update a creature (animal)
+      function updateCreature(creature) {
+        creature.age++
+
+        // Update hunger
+        creature.hunger -= creature.hungerRate
+        if (creature.hunger <= 0) {
+          creature.age = creature.maxAge // Die of hunger
+          return
+        }
+
+        // Handle breeding cooldown
+        if (creature.breedCooldown > 0) {
+          creature.breedCooldown--
+        }
+
+        // If we have a target, move toward it
+        if (creature.target) {
+          const target = creature.target
+          const dx = target.x - creature.x
+          const dy = target.y - creature.y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+
+          // Check if target is reached
+          if (distance < creature.size + target.size) {
+            // Eat or breed
+            if (creature.food.includes(target.type)) {
+              // Eat
+              creature.hunger = Math.min(100, creature.hunger + 50)
+              if (target.type === 'GRASS') {
+                target.eaten = true
+                if (isCounting) interactions.eaten++
+              } else {
+                target.age = target.maxAge // Kill prey
+                if (isCounting) interactions.eaten++
+              }
+              creature.target = null
+            } else if (
+              target.type === creature.type &&
+              creature.breedCooldown === 0 &&
+              target.breedCooldown === 0 &&
+              Math.random() < creature.breedChance
+            ) {
+              // Breed
+              const newX = creature.x + (Math.random() * 40 - 20)
+              const newY = creature.y + (Math.random() * 40 - 20)
+              createAnimal(creature.type, newX, newY)
+              creature.breedCooldown = 100
+              target.breedCooldown = 100
+              if (isCounting) interactions.bred++
+              creature.target = null
+            }
+          } else {
+            // Move toward target
+            creature.dx = (dx / distance) * creature.speed
+            creature.dy = (dy / distance) * creature.speed
+            if (isCounting && distance < creature.vision / 2) interactions.chased++
+          }
+        } else {
+          // Find a new target
+          if (creature.hunger < 70 || (creature.breedCooldown === 0 && Math.random() < 0.02)) {
+            let closestTarget = null
+            let closestDistance = Infinity
+
+            animals.forEach((other) => {
+              // Skip self and grass that's been eaten
+              if (other === creature || (other.type === 'GRASS' && other.eaten)) return
+
+              // Check if other is food or potential mate
+              const isFood = creature.food.includes(other.type)
+              const isMate =
+                other.type === creature.type &&
+                creature.breedCooldown === 0 &&
+                other.breedCooldown === 0 &&
+                creature.hunger > 50
+
+              if (isFood || isMate) {
+                const dx = other.x - creature.x
+                const dy = other.y - creature.y
+                const distance = Math.sqrt(dx * dx + dy * dy)
+
+                if (distance < creature.vision && distance < closestDistance) {
+                  closestTarget = other
+                  closestDistance = distance
+                }
+              }
+            })
+
+            if (closestTarget) {
+              creature.target = closestTarget
+            }
+          }
+
+          // Wander randomly if no target
+          if (!creature.target) {
+            if (creature.wandering <= 0 || Math.random() < 0.05) {
+              creature.dx = (Math.random() * 2 - 1) * creature.speed * 0.3
+              creature.dy = (Math.random() * 2 - 1) * creature.speed * 0.3
+              creature.wandering = Math.random() * 100 + 50
+            } else {
+              creature.wandering--
+            }
+          }
+        }
+
+        // Update position with some randomness for goofy movement
+        creature.x += creature.dx + (Math.random() * 0.2 - 0.1)
+        creature.y += creature.dy + (Math.random() * 0.2 - 0.1)
+
+        // Keep within bounds
+        creature.x = Math.max(creature.size, Math.min(canvas.width - creature.size, creature.x))
+        creature.y = Math.max(creature.size, Math.min(canvas.height - 200 - creature.size, creature.y))
+
+        // Random direction changes
+        if (Math.random() < 0.01) {
+          creature.dx *= -1
+        }
+        if (Math.random() < 0.01) {
+          creature.dy *= -1
+        }
+      }
+
+      // Draw a creature
+      function drawCreature(creature) {
+        // Draw shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
+        ctx.beginPath()
+        ctx.ellipse(creature.x, creature.y + creature.size / 2, creature.size, creature.size / 3, 0, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Draw body
+        ctx.fillStyle = creature.color
+        ctx.beginPath()
+        ctx.arc(creature.x, creature.y, creature.size, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Draw emoji face
+        ctx.font = `${creature.size}px Arial`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(creature.emoji, creature.x, creature.y)
+
+        // Draw hunger bar
+        const barWidth = creature.size * 2
+        const hungerPercent = creature.hunger / 100
+        ctx.fillStyle = hungerPercent > 0.5 ? '#4CAF50' : hungerPercent > 0.2 ? '#FFC107' : '#F44336'
+        ctx.fillRect(creature.x - barWidth / 2, creature.y - creature.size - 10, barWidth * hungerPercent, 3)
+        ctx.strokeStyle = '#000'
+        ctx.strokeRect(creature.x - barWidth / 2, creature.y - creature.size - 10, barWidth, 3)
+      }
+
+      // Draw grass
+      function drawGrass(grass) {
+        if (grass.eaten) return
+
+        ctx.fillStyle = grass.color
+        ctx.beginPath()
+        ctx.moveTo(grass.x, grass.y)
+        ctx.lineTo(grass.x - 3, grass.y + grass.size)
+        ctx.lineTo(grass.x + 3, grass.y + grass.size)
+        ctx.closePath()
+        ctx.fill()
+
+        ctx.font = `${grass.size}px Arial`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'bottom'
+        ctx.fillText(grass.emoji, grass.x, grass.y + grass.size)
+      }
+
+      // Update stats display
+      function updateStats() {
+        const counts = {}
+        animals.forEach((animal) => {
+          if (animal.type !== 'GRASS' || !animal.eaten) {
+            counts[animal.type] = (counts[animal.type] || 0) + 1
+          }
+        })
+
+        let statsText = `<strong>Round ${round}</strong><br><br>`
+        statsText += `<u>Population:</u><br>`
+        for (const type in counts) {
+          statsText += `${ANIMAL_TYPES[type]?.emoji || '🌱'} ${type}: ${counts[type]}<br>`
+        }
+
+        statsText += `<br><u>Time Left:</u> ${roundTimer}s`
+
+        statsDisplay.innerHTML = statsText
+      }
+
+      // Start round
+      function startRound() {
+        isCounting = true
+        interactions = { eaten: 0, bred: 0, chased: 0 }
+        startRoundBtn.disabled = true
+        statsDisplay.style.display = 'block'
+        countForm.style.display = 'none'
+
+        // Start timer
+        roundTimer = 60
+        timerDisplay.textContent = roundTimer
+        clearInterval(timerInterval)
+        timerInterval = setInterval(() => {
+          roundTimer--
+          timerDisplay.textContent = roundTimer
+
+          if (roundTimer <= 0) {
+            endCounting()
+          }
+        }, 1000)
+      }
+
+      // End counting phase
+      function endCounting() {
+        clearInterval(timerInterval)
+        isCounting = false
+        startRoundBtn.textContent = 'Next Round'
+        startRoundBtn.disabled = false
+        statsDisplay.style.display = 'none'
+        countForm.style.display = 'block'
+
+        // Reset input fields
+        eatenGuessInput.value = ''
+        bredGuessInput.value = ''
+        chasedGuessInput.value = ''
+      }
+
+      // Submit counts
+      function submitCounts() {
+        const eatenGuess = parseInt(eatenGuessInput.value) || 0
+        const bredGuess = parseInt(bredGuessInput.value) || 0
+        const chasedGuess = parseInt(chasedGuessInput.value) || 0
+
+        // Calculate score (lower difference = better)
+        const eatenDiff = Math.abs(interactions.eaten - eatenGuess)
+        const bredDiff = Math.abs(interactions.bred - bredGuess)
+        const chasedDiff = Math.abs(interactions.chased - chasedGuess)
+
+        const totalDiff = eatenDiff + bredDiff + chasedDiff
+        playerScore = Math.max(0, 100 - totalDiff)
+
+        // Show results
+        statsDisplay.style.display = 'block'
+        countForm.style.display = 'none'
+
+        let resultsText = `<strong>Round ${round} Results</strong><br><br>`
+        resultsText += `<u>Actual Counts:</u><br>`
+        resultsText += `🍽️ Eaten: ${interactions.eaten}<br>`
+        resultsText += `❤️ Bred: ${interactions.bred}<br>`
+        resultsText += `🏃 Chased: ${interactions.chased}<br>`
+
+        resultsText += `<br><u>Your Guesses:</u><br>`
+        resultsText += `🍽️ Eaten: ${eatenGuess}<br>`
+        resultsText += `❤️ Bred: ${bredGuess}<br>`
+        resultsText += `🏃 Chased: ${chasedGuess}<br>`
+
+        resultsText += `<br><u>Your Score:</u> ${playerScore}/100`
+
+        statsDisplay.innerHTML = resultsText
+
+        // Prepare for next round
+        round++
+        roundDisplay.textContent = round
+        startRoundBtn.textContent = 'Start Round'
+
+        // Add some new animals occasionally
+        if (round % 2 === 0) {
+          const types = ['RABBIT', 'FOX', 'WOLF', 'DEER']
+          const type = types[Math.floor(Math.random() * types.length)]
+          createAnimal(type)
+        }
+
+        // Add new grass
+        createGrass()
+      }
+
+      // Event listeners
+      startRoundBtn.addEventListener('click', startRound)
+      submitCountsBtn.addEventListener('click', submitCounts)
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      })
+
+      // Start the game
+      init()
+    </script>
+  </body>
+</html>
