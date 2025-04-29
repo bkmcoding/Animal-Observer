@@ -5,28 +5,41 @@ export default class Entity {
     this.x = x
     this.y = y
     this.type = type
-    this.size = 52
+    this.size = constants.ICON_WIDTH
+    this.wobbleOffset = 0
+    this.wobbleDirection = 1
+    this.wobblePhase = Math.random() * Math.PI * 2
+    this.facingRight = true
+    this.lastStableX = x
   }
 
-  // constructor(x, y, tribe) {
-  //   this.x = x
-  //   this.y = y
-  //   this.tribe = tribe
-  //   this.img = new Image()
-  //   this.img.src = `${tribe}.png`
-  // }
+  updateWobble() {
+    // Update wobble phase (creates oscillation)
+    this.wobblePhase += constants.WOBBLE_SPEED
+    this.wobbleOffset = Math.sin(this.wobblePhase) * constants.WOBBLE_AMOUNT
+  }
+
+  updateDirection() {
+    const xMovement = this.x - this.lastStableX
+
+    // Only flip if movement exceeds threshold
+    if (Math.abs(xMovement) > constants.FLIP_THRESHOLD) {
+      this.facingRight = xMovement > 0
+      this.lastStableX = this.x // Update only after significant movement
+    }
+  }
 
   moveTowards(targetX, targetY) {
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x += (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
-    this.y += (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+    this.x += (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y += (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
     this.avoidEdges()
   }
 
   moveAwayFrom(targetX, targetY) {
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x -= (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
-    this.y -= (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+    this.x -= (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y -= (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
     this.avoidEdges()
   }
 
@@ -35,7 +48,7 @@ export default class Entity {
   }
 
   repelFrom(other) {
-    if (this.distanceTo(other) < REPULSION_RADIUS) {
+    if (this.distanceTo(other) < constants.REPULSION_RADIUS) {
       this.moveAwayFrom(other.x, other.y)
     }
   }
@@ -43,8 +56,8 @@ export default class Entity {
   draw() {
     ctx.save()
     ctx.beginPath()
-    ctx.arc(this.x, this.y, ENTITY_RADIUS, 0, Math.PI * 2)
-    ctx.fillStyle = colors[this.tribe]
+    ctx.arc(this.x, this.y, constants.ENTITY_RADIUS, 0, Math.PI * 2)
+    ctx.fillStyle = colors[this.type]
     ctx.fill()
     ctx.closePath()
 
@@ -54,15 +67,19 @@ export default class Entity {
   }
 
   avoidEdges() {
-    if (this.x < EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x + EDGE_AVOID_RADIUS, this.y)
-    } else if (this.x > WINDOW_WIDTH - EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x - EDGE_AVOID_RADIUS, this.y)
+    if (this.x < constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x + constants.EDGE_AVOID_RADIUS, this.y)
+    } else if (this.x > constants.WINDOW_WIDTH - constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x - constants.EDGE_AVOID_RADIUS, this.y)
     }
-    if (this.y < EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x, this.y + EDGE_AVOID_RADIUS)
-    } else if (this.y > WINDOW_HEIGHT - EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x, this.y - EDGE_AVOID_RADIUS)
+    if (this.y < constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x, this.y + constants.EDGE_AVOID_RADIUS)
+    } else if (this.y > constants.WINDOW_HEIGHT - constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x, this.y - constants.EDGE_AVOID_RADIUS)
     }
+  }
+
+  getRandomUniform(min, max) {
+    return Math.random() * (max - min) + min
   }
 }

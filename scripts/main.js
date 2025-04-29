@@ -47,16 +47,17 @@ function getRandomInt(min, max) {
 }
 
 const entities = []
+const queuedEntities = []
 const tribes = ['cow', 'wolf', 'sheep']
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 10; i++) {
   for (const tribe of tribes) {
-    entities.push(new Entity(Math.random() * WINDOW_WIDTH, Math.random() * WINDOW_HEIGHT, tribe))
+    entities.push(new Entity(Math.random() * constants.WINDOW_WIDTH, Math.random() * constants.WINDOW_HEIGHT, tribe))
   }
 }
 
 function adjustMovement() {
-  ctx.clearRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+  ctx.clearRect(0, 0, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)
 
   // Draw background (in a real implementation, you'd draw an image here)
   // ctx.fillStyle = '#333'
@@ -65,21 +66,20 @@ function adjustMovement() {
   for (const entity of entities) {
     let targets, threats
 
-    if (entity.tribe === 'rock') {
-      targets = entities.filter((e) => e.tribe === 'scissors')
-      threats = entities.filter((e) => e.tribe === 'paper')
-    } else if (entity.tribe === 'paper') {
-      targets = entities.filter((e) => e.tribe === 'rock')
-      threats = entities.filter((e) => e.tribe === 'scissors')
+    if (entity.type === 'cow') {
+      targets = entities.filter((e) => e.type === 'wolf')
+      threats = entities.filter((e) => e.type === 'sheep')
+    } else if (entity.type === 'sheep') {
+      targets = entities.filter((e) => e.type === 'cow')
+      threats = entities.filter((e) => e.type === 'wolf')
     } else {
-      // scissors
-      targets = entities.filter((e) => e.tribe === 'paper')
-      threats = entities.filter((e) => e.tribe === 'rock')
+      targets = entities.filter((e) => e.type === 'sheep')
+      threats = entities.filter((e) => e.type === 'cow')
     }
 
     // Repel from same tribe
     for (const other of entities) {
-      if (entity !== other && entity.tribe === other.tribe) {
+      if (entity !== other && entity.type === other.type) {
         entity.repelFrom(other)
       }
     }
@@ -100,15 +100,15 @@ function adjustMovement() {
         : null
 
     // Movement logic
-    if (closestThreat && entity.distanceTo(closestThreat) < DETECTION_RADIUS) {
+    if (closestThreat && entity.distanceTo(closestThreat) < constants.DETECTION_RADIUS) {
       entity.moveAwayFrom(closestThreat.x, closestThreat.y)
-    } else if (closestTarget && entity.distanceTo(closestTarget) < DETECTION_RADIUS) {
+    } else if (closestTarget && entity.distanceTo(closestTarget) < constants.DETECTION_RADIUS) {
       entity.moveTowards(closestTarget.x, closestTarget.y)
-      if (entity.distanceTo(closestTarget) < CONVERSION_RADIUS) {
-        closestTarget.tribe = entity.tribe
+      if (entity.distanceTo(closestTarget) < constants.CONVERSION_RADIUS) {
+        closestTarget.type = entity.type
       }
     } else {
-      entity.moveTowards(Math.random() * WINDOW_WIDTH, Math.random() * WINDOW_HEIGHT)
+      entity.moveTowards(Math.random() * constants.WINDOW_WIDTH, Math.random() * constants.WINDOW_HEIGHT)
     }
 
     draw(entity)
@@ -117,6 +117,8 @@ function adjustMovement() {
 
 // Draw everything
 function draw(entity) {
+  entity.updateWobble()
+  entity.updateDirection()
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   // // Draw player
@@ -137,18 +139,54 @@ function draw(entity) {
     const height = width / aspect
 
     ctx.save()
-    // Flip image if moving left
-    // if (creature.x < 0) {
-    //     ctx.translate(creature.x * 2, 0);
-    //     ctx.scale(-1, 1);
-    // }
-    // ctx.drawImage(img,
-    //   entity.dx < 0 ? -entity.x : entity.x - width/2,
-    //   entity.y - entity/2,
-    //     width,
-    //     height
-    // );
-    ctx.drawImage(img, entity.x, entity.y)
+
+    // ctx.translate(entity.x, entity.y)
+
+    // Apply directional rotation (adjusted for right-facing images)
+    // ctx.rotate(entity.facingAngle)
+
+    // Apply wobble by slightly rotating the image back and forth
+    const rotationAngle = Math.sin(entity.wobblePhase) * 0.2 // Small rotation (in radians)
+
+    // Move to entity position and apply rotation
+    ctx.translate(entity.x, entity.y)
+    if (!entity.facingRight) {
+      ctx.scale(-1, 1) // Mirror horizontally
+    }
+    ctx.rotate(rotationAngle)
+
+    // Draw image (adjusted pivot for right-facing)
+    ctx.drawImage(
+      img,
+      entity.facingRight ? -constants.ICON_WIDTH / 2 : -constants.ICON_WIDTH / 2,
+      -constants.ICON_HEIGHT / 2 + entity.wobbleOffset / 2,
+      constants.ICON_WIDTH,
+      constants.ICON_HEIGHT
+    )
+
+    ctx.restore()
+
+    // ctx.save()
+
+    // // Apply wobble by slightly rotating the image back and forth
+    // const rotationAngle = Math.sin(entity.wobblePhase) * 0.2 // Small rotation (in radians)
+
+    // // Move to entity position and apply rotation
+    // ctx.translate(entity.x, entity.y)
+    // ctx.rotate(rotationAngle)
+
+    // // Draw the image centered with wobble effect
+    // ctx.drawImage(
+    //   img,
+    //   -constants.ICON_WIDTH / 2,
+    //   -constants.ICON_HEIGHT / 2 + entity.wobbleOffset / 2, // Vertical wobble
+    //   constants.ICON_WIDTH,
+    //   constants.ICON_HEIGHT
+    // )
+    // ctx.restore()
+    // ctx.restore()
+    // ctx.drawImage(img, entity.x, entity.y)
+    // ctx.restore()
     // ctx.fillStyle = entity.color
     // console.log('Drawing entity:', entity)
     // ctx.fillRect(entity.x, entity.y, entity.size, entity.size)
@@ -167,7 +205,7 @@ await preloadImages()
 // Game loop
 async function gameLoop() {
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
-  adjust_movement()
+  adjustMovement()
 
   requestAnimationFrame(gameLoop)
 }
