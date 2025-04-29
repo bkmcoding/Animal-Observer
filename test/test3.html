@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rock Paper Scissors Simulation</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #000;
+      }
+      canvas {
+        display: block;
+      }
+      #winnerBox {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+      }
+      #winnerTitle {
+        color: #6aff9b;
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+      #winnerTribe {
+        color: white;
+        font-size: 36px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="winnerBox">
+      <div id="winnerTitle">Winner!</div>
+      <div id="winnerTribe"></div>
+    </div>
+
+    <script>
+      // Canvas setup
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+      const winnerBox = document.getElementById('winnerBox')
+      const winnerTitle = document.getElementById('winnerTitle')
+      const winnerTribe = document.getElementById('winnerTribe')
+
+      // Constants
+      const WINDOW_WIDTH = 810
+      const WINDOW_HEIGHT = 1440
+      const ENTITY_RADIUS = 5
+      const SPEED = 1
+      const DETECTION_RADIUS = 100
+      const CONVERSION_RADIUS = 20
+      const EDGE_AVOID_RADIUS = 50
+      const REPULSION_RADIUS = 20
+      const ICON_WIDTH = 30
+      const ICON_HEIGHT = 30
+
+      // Set canvas size
+      canvas.width = WINDOW_WIDTH
+      canvas.height = WINDOW_HEIGHT
+
+      // Colors
+      const colors = {
+        rock: '#ff6b6b',
+        paper: '#4ecdc4',
+        scissors: '#ffe66d',
+      }
+
+      // Entity class
+      class Entity {
+        constructor(x, y, tribe) {
+          this.x = x
+          this.y = y
+          this.tribe = tribe
+          this.img = new Image()
+          this.img.src = `${tribe}.png`
+        }
+
+        moveTowards(targetX, targetY) {
+          const angle = Math.atan2(targetY - this.y, targetX - this.x)
+          this.x += (SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
+          this.y += (SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+          this.avoidEdges()
+        }
+
+        moveAwayFrom(targetX, targetY) {
+          const angle = Math.atan2(targetY - this.y, targetX - this.x)
+          this.x -= (SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
+          this.y -= (SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+          this.avoidEdges()
+        }
+
+        distanceTo(other) {
+          return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2)
+        }
+
+        repelFrom(other) {
+          if (this.distanceTo(other) < REPULSION_RADIUS) {
+            this.moveAwayFrom(other.x, other.y)
+          }
+        }
+
+        draw() {
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(this.x, this.y, ENTITY_RADIUS, 0, Math.PI * 2)
+          ctx.fillStyle = colors[this.tribe]
+          ctx.fill()
+          ctx.closePath()
+
+          // If images were loaded, we would use this:
+          // ctx.drawImage(this.img, this.x - ICON_WIDTH / 2, this.y - ICON_HEIGHT / 2, ICON_WIDTH, ICON_HEIGHT);
+          ctx.restore()
+        }
+
+        avoidEdges() {
+          if (this.x < EDGE_AVOID_RADIUS) {
+            this.moveTowards(this.x + EDGE_AVOID_RADIUS, this.y)
+          } else if (this.x > WINDOW_WIDTH - EDGE_AVOID_RADIUS) {
+            this.moveTowards(this.x - EDGE_AVOID_RADIUS, this.y)
+          }
+          if (this.y < EDGE_AVOID_RADIUS) {
+            this.moveTowards(this.x, this.y + EDGE_AVOID_RADIUS)
+          } else if (this.y > WINDOW_HEIGHT - EDGE_AVOID_RADIUS) {
+            this.moveTowards(this.x, this.y - EDGE_AVOID_RADIUS)
+          }
+        }
+      }
+
+      // Create entities
+      const entities = []
+      const tribes = ['rock', 'paper', 'scissors']
+
+      for (let i = 0; i < 50; i++) {
+        for (const tribe of tribes) {
+          entities.push(new Entity(Math.random() * WINDOW_WIDTH, Math.random() * WINDOW_HEIGHT, tribe))
+        }
+      }
+
+      // Adjust movement and check for winners
+      function adjustMovement() {
+        ctx.clearRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+        // Draw background (in a real implementation, you'd draw an image here)
+        ctx.fillStyle = '#333'
+        ctx.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+        for (const entity of entities) {
+          let targets, threats
+
+          if (entity.tribe === 'rock') {
+            targets = entities.filter((e) => e.tribe === 'scissors')
+            threats = entities.filter((e) => e.tribe === 'paper')
+          } else if (entity.tribe === 'paper') {
+            targets = entities.filter((e) => e.tribe === 'rock')
+            threats = entities.filter((e) => e.tribe === 'scissors')
+          } else {
+            // scissors
+            targets = entities.filter((e) => e.tribe === 'paper')
+            threats = entities.filter((e) => e.tribe === 'rock')
+          }
+
+          // Repel from same tribe
+          for (const other of entities) {
+            if (entity !== other && entity.tribe === other.tribe) {
+              entity.repelFrom(other)
+            }
+          }
+
+          // Find closest target and threat
+          let closestTarget =
+            targets.length > 0
+              ? targets.reduce((closest, current) =>
+                  entity.distanceTo(current) < entity.distanceTo(closest) ? current : closest
+                )
+              : null
+
+          let closestThreat =
+            threats.length > 0
+              ? threats.reduce((closest, current) =>
+                  entity.distanceTo(current) < entity.distanceTo(closest) ? current : closest
+                )
+              : null
+
+          // Movement logic
+          if (closestThreat && entity.distanceTo(closestThreat) < DETECTION_RADIUS) {
+            entity.moveAwayFrom(closestThreat.x, closestThreat.y)
+          } else if (closestTarget && entity.distanceTo(closestTarget) < DETECTION_RADIUS) {
+            entity.moveTowards(closestTarget.x, closestTarget.y)
+            if (entity.distanceTo(closestTarget) < CONVERSION_RADIUS) {
+              closestTarget.tribe = entity.tribe
+            }
+          } else {
+            entity.moveTowards(Math.random() * WINDOW_WIDTH, Math.random() * WINDOW_HEIGHT)
+          }
+
+          entity.draw()
+        }
+
+        // Check for winner
+        const counts = {
+          rock: entities.filter((e) => e.tribe === 'rock').length,
+          paper: entities.filter((e) => e.tribe === 'paper').length,
+          scissors: entities.filter((e) => e.tribe === 'scissors').length,
+        }
+
+        let winner = null
+        if (counts.rock === entities.length) {
+          winner = 'Rock'
+        } else if (counts.paper === entities.length) {
+          winner = 'Paper'
+        } else if (counts.scissors === entities.length) {
+          winner = 'Scissors'
+        }
+
+        if (winner) {
+          winnerTribe.textContent = winner
+          winnerBox.style.display = 'block'
+
+          // Stop the animation after showing the winner for 10 seconds
+          setTimeout(() => {
+            cancelAnimationFrame(animationId)
+          }, 10000)
+        }
+      }
+
+      // Animation loop
+      let animationId
+      function gameLoop() {
+        adjustMovement()
+        animationId = requestAnimationFrame(gameLoop)
+      }
+
+      // Start the game
+      gameLoop()
+    </script>
+  </body>
+</html>

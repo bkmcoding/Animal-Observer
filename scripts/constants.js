@@ -1,23 +1,24 @@
-const WINDOW_WIDTH = 810
-const WINDOW_HEIGHT = 1440
-const ENTITY_RADIUS = 5
-const SPEED = 3
-const DETECTION_RADIUS = 100
-const CONVERSION_RADIUS = 20
-const EDGE_AVOID_RADIUS = 50
-const REPULSION_RADIUS = 20
-const ICON_WIDTH = 30
-const ICON_HEIGHT = 30
-
-export {
-  WINDOW_WIDTH,
-  WINDOW_HEIGHT,
-  ENTITY_RADIUS,
-  SPEED,
-  DETECTION_RADIUS,
-  CONVERSION_RADIUS,
-  EDGE_AVOID_RADIUS,
-  REPULSION_RADIUS,
-  ICON_WIDTH,
-  ICON_HEIGHT,
+export const WINDOW_WIDTH = 810
+export const WINDOW_HEIGHT = 1440
+export const ENTITY_RADIUS = 5
+export const SPEED = 0.2
+export const DETECTION_RADIUS = 200
+export const CONVERSION_RADIUS = 50
+export const EDGE_AVOID_RADIUS = 100
+export const REPULSION_RADIUS = 50
+export const ICON_WIDTH = 52
+export const ICON_HEIGHT = 52
+export const ANIMAL_TYPES = {
+  cow: {
+    name: 'cow',
+    image: '../assets/images/animals/cow.png',
+  },
+  sheep: {
+    name: 'sheep',
+    image: '../assets/images/animals/sheep.png',
+  },
+  wolf: {
+    name: 'wolf',
+    image: '../assets/images/animals/wolf.png',
+  },
 }

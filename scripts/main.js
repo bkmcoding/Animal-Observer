@@ -1,161 +1,193 @@
 import * as constants from './constants.js'
 import Entity from './Models/Entity.js'
 
+let first = 0
+
 // Setup
 const canvas = document.getElementById('gameCanvas')
 const ctx = canvas.getContext('2d')
 
-const player = {
-  x: 50,
-  y: 50,
-  size: 30,
-  color: 'blue',
-  speed: 5,
-}
+// Image cache
+const imageCache = {}
 
-const enemies = []
-for (let i = 0; i < 5; i++) {
-  enemies.push({
-    x: Math.random() * 470,
-    y: Math.random() * 470,
-    size: 30,
-    color: 'red',
-    dx: (Math.random() - 0.5) * 4,
-    dy: (Math.random() - 0.5) * 4,
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    if (imageCache[url]) {
+      resolve(imageCache[url])
+      return
+    }
+
+    const img = new Image()
+    img.onload = () => {
+      imageCache[url] = img
+      resolve(img)
+    }
+    img.onerror = reject
+    img.src = url
   })
 }
 
-let keys = {}
+// Preload all images
+async function preloadImages() {
+  const types = Object.values(constants.ANIMAL_TYPES)
+  const imageUrls = types.map((t) => t.image).filter((url) => url)
 
-// Event listeners for player movement
-document.addEventListener('keydown', (e) => {
-  keys[e.key] = true
-})
-
-document.addEventListener('keyup', (e) => {
-  keys[e.key] = false
-})
-
-// Update player and enemy positions
-function update() {
-  if (keys['ArrowUp']) player.y -= player.speed
-  if (keys['ArrowDown']) player.y += player.speed
-  if (keys['ArrowLeft']) player.x -= player.speed
-  if (keys['ArrowRight']) player.x += player.speed
-
-  // Keep player inside the canvas
-  player.x = Math.max(0, Math.min(canvas.width - player.size, player.x))
-  player.y = Math.max(0, Math.min(canvas.height - player.size, player.y))
-
-  enemies.forEach((enemy) => {
-    enemy.x += enemy.dx
-    enemy.y += enemy.dy
-
-    // Bounce off walls
-    if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) enemy.dx *= -1
-    if (enemy.y <= 0 || enemy.y + enemy.size >= canvas.height) enemy.dy *= -1
-  })
-}
-
-entities = []
-for (let i = 0; i < 50; i++) {
-  entities.append(Entity(random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT), 'cow', 'image'))
-  entities.append(Entity(random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT), 'sheep', 'image'))
-  entities.append(Entity(random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT), 'wolf', 'image'))
-}
-
-function adjust_movement() {
-  targets = []
-  threats = []
-  for (entity in entities) {
-    if (entity.type == 'cow') {
-      for (e of entities) {
-        if (e.type == 'scissors') {
-          targets.append(e)
-        } else if (e.type == 'paper') {
-          threats.append(e)
-        }
-      }
-    } else if (entity.type == 'sheep') {
-      for (e of entities) {
-        if (e.type == 'rock') {
-          targets.append(e)
-        } else if (e.type == 'scissors') {
-          threats.append(e)
-        }
-      }
-    } else {
-      for (e of entities) {
-        if (e.type == 'rock') {
-          targets.append(e)
-        } else if (e.type == 'scissors') {
-          threats.append(e)
-        }
-      }
-    }
-
-    for (other in entities) {
-      if (entity != other && entity.type == other.type) {
-        entity.repel_from(other)
-      }
-    }
-
-    let closest_target =
-      targets.length > 0
-        ? targets.reduce((min, t) => (entity.distance_to(t) < entity.distance_to(min) ? t : min), targets[0])
-        : null
-
-    let closest_threat =
-      threats.length > 0
-        ? threats.reduce((min, t) => (entity.distance_to(t) < entity.distance_to(min) ? t : min), threats[0])
-        : null
-
-    if (closest_threat && entity.distance_to(closest_threat) < DETECTION_RADIUS) {
-      entity.move_away_from(closest_threat.x, closest_threat.y)
-    } else if (closest_target && entity.distance_to(closest_target) < DETECTION_RADIUS) {
-      entity.move_towards(closest_target.x, closest_target.y)
-      if (entity.distance_to(closest_target) < CONVERSION_RADIUS) {
-        closest_target.tribe = entity.tribe
-      }
-    } else {
-      tity.move_towards(random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT))
-    }
-
-    entity.draw()
+  try {
+    await Promise.all(imageUrls.map(loadImage))
+    console.log('All images loaded')
+  } catch (error) {
+    console.error('Error loading images:', error)
   }
 }
 
-// Draw everything
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+function getRandomInt(min, max) {
+  min = Math.ceil(min)
+  max = Math.floor(max)
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
-  // Draw player
-  ctx.fillStyle = player.color
-  ctx.fillRect(player.x, player.y, player.size, player.size)
+let entities = []
+for (let i = 0; i < 20; i++) {
+  entities.push(new Entity(getRandomInt(0, canvas.width), getRandomInt(0, canvas.height), 'cow'))
+  entities.push(new Entity(getRandomInt(0, canvas.width), getRandomInt(0, canvas.height), 'sheep'))
+  entities.push(new Entity(getRandomInt(0, canvas.width), getRandomInt(0, canvas.height), 'wolf'))
+}
 
-  // Draw enemies
-  enemies.forEach((enemy) => {
-    ctx.fillStyle = enemy.color
-    ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size)
+function adjust_movement() {
+  // for (const entity in entities) {
+  entities.forEach((entity) => {
+    let targets = []
+    let threats = []
+    if (entity.type == 'cow') {
+      entities.forEach((e) => {
+        if (e.type == 'wolf') {
+          targets.push(e)
+        } else if (e.type == 'sheep') {
+          threats.push(e)
+        }
+      })
+    } else if (entity.type == 'sheep') {
+      entities.forEach((e) => {
+        if (e.type == 'cow') {
+          targets.push(e)
+        } else if (e.type == 'wolf') {
+          threats.push(e)
+        }
+      })
+    } else {
+      entities.forEach((e) => {
+        if (e.type == 'sheep') {
+          targets.push(e)
+        } else if (e.type == 'cow') {
+          threats.push(e)
+        }
+      })
+    }
+
+    // for (const other in entities) {
+    entities.forEach((other) => {
+      if (entity != other && entity.type == other.type) {
+        // entity.repel_from(other)
+      }
+    })
+
+    // let closest_target = null
+    // let closest_threat = null
+    // let minDist = Infinity
+    // for (const target of targets ?? []) {
+    //   const dist = entity.distance_to(target)
+    //   if (dist < minDist) [closest, minDist] = [target, dist]
+    // }
+    // for (const threat of threats ?? []) {
+    //   const dist = entity.distance_to(threat)
+    //   if (dist < minDist) [closest, minDist] = [threat, dist]
+    // }
+
+    let closest_target = targets?.length
+      ? [...targets].sort((a, b) => entity.distance_to(a) - entity.distance_to(b))[0]
+      : null
+
+    let closest_threat = threats?.length
+      ? [...threats].sort((a, b) => entity.distance_to(a) - entity.distance_to(b))[0]
+      : null
+
+    if (500 % first == 0) {
+      console.log('Targets:', targets)
+      console.log('Threats:', threats)
+      console.log(closest_target)
+      console.log(closest_threat)
+      first += 1
+    }
+
+    if (closest_threat && entity.distance_to(closest_threat) < constants.DETECTION_RADIUS) {
+      entity.move_away_from(canvas, closest_threat.x, closest_threat.y)
+    } else if (closest_target && entity.distance_to(closest_target) < constants.DETECTION_RADIUS) {
+      entity.move_towards(canvas, closest_target.x, closest_target.y)
+      if (entity.distance_to(closest_target) < constants.CONVERSION_RADIUS) {
+        // closest_target.type = entity.type
+      }
+    } else {
+      // entity.move_towards(canvas, getRandomInt(0, canvas.width), getRandomInt(0, canvas.height))
+    }
+
+    draw(entity)
   })
 }
 
+// Draw everything
+function draw(entity) {
+  // ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // // Draw player
+  // ctx.fillStyle = player.color
+  // ctx.fillRect(player.x, player.y, player.size, player.size)
+
+  // // Draw enemies
+  // enemies.forEach((enemy) => {
+  //   ctx.fillStyle = enemy.color
+  //   ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size)
+  // })
+  // Draw image instead of emoji
+  const img = imageCache[constants.ANIMAL_TYPES[entity.type].image]
+  if (img) {
+    // Calculate size while maintaining aspect ratio
+    const aspect = img.width / img.height
+    const width = entity.size * 2
+    const height = width / aspect
+
+    ctx.save()
+    // Flip image if moving left
+    // if (creature.x < 0) {
+    //     ctx.translate(creature.x * 2, 0);
+    //     ctx.scale(-1, 1);
+    // }
+    // ctx.drawImage(img,
+    //   entity.dx < 0 ? -entity.x : entity.x - width/2,
+    //   entity.y - entity/2,
+    //     width,
+    //     height
+    // );
+    ctx.drawImage(img, entity.x, entity.y)
+    // ctx.fillStyle = entity.color
+    // console.log('Drawing entity:', entity)
+    // ctx.fillRect(entity.x, entity.y, entity.size, entity.size)
+    ctx.restore()
+  } else {
+    // Fallback to colored circle if image not loaded
+    ctx.fillStyle = entity.color
+    ctx.beginPath()
+    ctx.arc(entity.x, entity.y, entity.size, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  // ctx.drawImage(entity.image, entity.x, entity.y)
+}
+
+await preloadImages()
 // Game loop
-function gameLoop() {
+async function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   adjust_movement()
 
-  // rock_count = sum(1 for entity in entities if entity.tribe == 'rock')
-  // paper_count = sum(1 for entity in entities if entity.tribe == 'paper')
-  // scissors_count = sum(1 for entity in entities if entity.tribe == 'scissors')
-
-  // winner_text = None
-  // if rock_count == len(entities):
-  //     winner_text = "Rock"
-  // elif paper_count == len(entities):
-  //     winner_text = "Paper"
-  // elif scissors_count == len(entities):
-  //     winner_text = "Scissors"
-  // draw()
   requestAnimationFrame(gameLoop)
 }
 

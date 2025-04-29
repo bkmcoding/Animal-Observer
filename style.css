@@ -11,3 +11,25 @@ canvas {
   margin: 20px auto;
   border: 2px solid #333;
 }
+
+#background {
+  background-color: #49abd1;
+  display: block;
+  margin: 0 auto;
+}
+
+#menu {
+  position: absolute;
+  top: 20%;
+  left: calc(50% - 480px);
+  width: 960px;
+  height: 525px;
+}
+
+#startGameButton {
+  position: absolute;
+  top: 65%;
+  left: calc(50% - 128px * 3 / 2);
+  width: calc(128px * 3);
+  height: calc(96px * 3);
+}
