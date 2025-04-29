@@ -12,10 +12,21 @@ canvas {
   border: 2px solid #333;
 }
 
-#background {
+#sky {
   background-color: #49abd1;
   display: block;
   margin: 0 auto;
+}
+
+#background {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('./assets/images/UI/progressedLandscape.png');
+  background-size: cover;
 }
 
 #menu {
