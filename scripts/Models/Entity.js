@@ -8,60 +8,61 @@ export default class Entity {
     this.size = 52
   }
 
-  draw() {
-    // self.ctx.fillStyle = this.color
-    // ctx.fillRect(this.x, this.y, this.size, this.size)
-    // this.ctx.drawImage(this.image, this.x, this.y)
+  // constructor(x, y, tribe) {
+  //   this.x = x
+  //   this.y = y
+  //   this.tribe = tribe
+  //   this.img = new Image()
+  //   this.img.src = `${tribe}.png`
+  // }
+
+  moveTowards(targetX, targetY) {
+    const angle = Math.atan2(targetY - this.y, targetX - this.x)
+    this.x += (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
+    this.y += (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+    this.avoidEdges()
   }
 
-  move_towards(canvas, target_x, target_y) {
-    let angle = Math.atan2(target_y - this.y, target_x - this.x)
-    this.x += constants.SPEED + this.getRandomUniform(-0.3, 0.3) * Math.cos(angle)
-    this.y += constants.SPEED + this.getRandomUniform(-0.3, 0.3) * Math.sin(angle)
-    this.avoid_edges(canvas)
+  moveAwayFrom(targetX, targetY) {
+    const angle = Math.atan2(targetY - this.y, targetX - this.x)
+    this.x -= (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.cos(angle)
+    this.y -= (constants.SPEED + Math.random() * 0.6 - 0.3) * Math.sin(angle)
+    this.avoidEdges()
   }
 
-  move_away_from(canvas, target_x, target_y) {
-    let angle = Math.atan2(target_y - this.y, target_x - this.x)
-    this.x -= (constants.SPEED + this.getRandomUniform(-0.3, 0.3)) * Math.cos(angle)
-    this.y -= (constants.SPEED + this.getRandomUniform(-0.3, 0.3)) * Math.sin(angle)
-    this.avoid_edges(canvas)
-  }
-
-  distance_to(other) {
+  distanceTo(other) {
     return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2)
   }
 
-  repel_from(other) {
-    if (this.distance_to(other) < constants.REPULSION_RADIUS) {
-      this.move_away_from(other.x, other.y)
+  repelFrom(other) {
+    if (this.distanceTo(other) < REPULSION_RADIUS) {
+      this.moveAwayFrom(other.x, other.y)
     }
   }
 
-  // draw(self) {
-  // if (self.tribe == 'rock') {
-  //     screen.blit(rock_icon, (self.x - ICON_WIDTH//2, self.y - ICON_HEIGHT//2))
-  //     }
-  // elif self.tribe == 'paper':
-  //     screen.blit(paper_icon, (self.x - ICON_WIDTH//2, self.y - ICON_HEIGHT//2))
-  // else:
-  //     screen.blit(scissors_icon, (self.x - ICON_WIDTH//2, self.y - ICON_HEIGHT//2))
-  // }
+  draw() {
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, ENTITY_RADIUS, 0, Math.PI * 2)
+    ctx.fillStyle = colors[this.tribe]
+    ctx.fill()
+    ctx.closePath()
 
-  avoid_edges(canvas) {
-    if (this.x < constants.EDGE_AVOID_RADIUS) {
-      this.move_towards(this.x + constants.EDGE_AVOID_RADIUS, this.y)
-    } else if (self.x > canvas.width - constants.EDGE_AVOID_RADIUS) {
-      this.move_towards(this.x - constants.EDGE_AVOID_RADIUS, this.y)
-    }
-    if (this.y < constants.EDGE_AVOID_RADIUS) {
-      this.move_towards(this.x, this.y + constants.EDGE_AVOID_RADIUS)
-    } else if (self.y > canvas.height - constants.EDGE_AVOID_RADIUS) {
-      this.move_towards(this.x, this.y - constants.EDGE_AVOID_RADIUS)
-    }
+    // If images were loaded, we would use this:
+    // ctx.drawImage(this.img, this.x - ICON_WIDTH / 2, this.y - ICON_HEIGHT / 2, ICON_WIDTH, ICON_HEIGHT);
+    ctx.restore()
   }
 
-  getRandomUniform(min, max) {
-    return Math.random() * (max - min) + min
+  avoidEdges() {
+    if (this.x < EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x + EDGE_AVOID_RADIUS, this.y)
+    } else if (this.x > WINDOW_WIDTH - EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x - EDGE_AVOID_RADIUS, this.y)
+    }
+    if (this.y < EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x, this.y + EDGE_AVOID_RADIUS)
+    } else if (this.y > WINDOW_HEIGHT - EDGE_AVOID_RADIUS) {
+      this.moveTowards(this.x, this.y - EDGE_AVOID_RADIUS)
+    }
   }
 }
