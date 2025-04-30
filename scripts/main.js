@@ -278,7 +278,7 @@ cloudButton.addEventListener('click', () => {
 })
 
 const gameCountdown = document.querySelector('#gameCountdown')
-const roundLength = 1
+const roundLength = 45
 function beginGameCountdown() {
   let count = 3
   const interval = setInterval(() => {
