@@ -67,20 +67,45 @@ canvas {
   position: absolute;
   top: -50%;
   left: 50%;
-  translate: calc(-50% - 50px) 0%;
+  translate: -50% 0%;
   width: 960px;
   height: 525px;
   z-index: 100;
   animation: dropAndBounce 2s ease-out forwards;
-  animation-delay: 3s;
+  animation-delay: 3.25s;
+}
+
+#tutorialScreen {
+  display: none;
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  translate: -50% 0%;
+  /* animation: dropAndBounce 2s ease-out forwards; */
+  animation-delay: 2.25s;
+}
+
+#cloudButton {
+  background-color: white;
+  text-align: center;
+  border: black 3px solid;
+  border-radius: 3px;
+  width: 224px;
+  height: 82px;
+  font-size: 2.25em;
+}
+
+#cloudButton:hover {
+  filter: brightness(0.77);
 }
 
 #clipboardContainer {
   display: relative;
   position: absolute;
-  top: 50%;
+  top: 200%;
   left: 50%;
   translate: -50% -50%;
+  transition: slideUp1 2s ease-in forwards;
 }
 
 .clipboardInput {
@@ -131,6 +156,15 @@ canvas {
   background-color: none;
   text-align: center;
   border: none;
+  width: 234px;
+  height: 91px;
+  font-size: 2.25em;
+}
+
+#clipboardButton {
+  background-color: none;
+  text-align: center;
+  border: none;
   width: 316px;
   height: 82px;
   font-size: 2.25em;
@@ -138,10 +172,37 @@ canvas {
 
 #startGameButton {
   position: absolute;
-  top: 65%;
-  left: calc(50% - 128px * 3 / 2);
-  width: calc(128px * 3);
-  height: calc(96px * 3);
+  top: 75%;
+  left: 50%;
+  translate: -50% 0%;
+}
+
+#startGameButton:hover {
+  filter: brightness(0.77);
+}
+
+#settingsButton {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  top: 0%;
+  left: calc(93%);
+  z-index: 1000;
+  /* translate: -50% 0%; */
+}
+
+#settingsButton:hover {
+  filter: brightness(0.77);
+}
+
+#gameCountdown {
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  translate: -50% 0%;
+  width: 100px;
+  height: 10px;
+  font-size: 5.25em;
 }
 
 .loading-screen {
@@ -178,23 +239,23 @@ canvas {
     transform: scale(1);
   }
   60% {
-    top: 25%;
+    top: 20%;
     transform: scale(1);
   }
   70% {
-    top: 27%;
+    top: 22%;
     transform: scale(1.1, 0.9);
   }
   80% {
-    top: 25%;
+    top: 20%;
     transform: scale(0.95, 1.05);
   }
   90% {
-    top: 26%;
+    top: 21%;
     transform: scale(1.02, 0.98);
   }
   100% {
-    top: 25%;
+    top: 20%;
     transform: scale(1);
   }
 }
@@ -225,19 +286,19 @@ canvas {
     top: calc(200vh - 112%);
   }
   60% {
-    top: calc(80% - 112%);
+    top: calc(82% - 112%);
   }
   70% {
-    top: calc(75% - 112%);
+    top: calc(76% - 112%);
   }
   80% {
-    top: calc(70% - 112%);
+    top: calc(72% - 112%);
   }
   90% {
-    top: calc(55% - 112%);
+    top: calc(63% - 115%);
   }
   100% {
-    top: calc(50% - 112%);
+    top: calc(50% - 118%);
   }
 }
 

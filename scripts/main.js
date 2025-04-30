@@ -6,8 +6,9 @@ let first = 0
 // Setup
 const canvas = document.getElementById('gameCanvas')
 const ctx = canvas.getContext('2d')
+const explosion = new Audio('./assets/sound/soundfx/explosion.wav')
+explosion.volume = 0.7
 let CANVAS_SIZE = [1920, 1080]
-let gameMusic = document.querySelector('.battleMusic')
 let gameStart = false
 // WINDOW_WIDTH = 1920
 // WINDOW_HEIGHT = 1080
@@ -52,14 +53,35 @@ function getRandomInt(min, max) {
 }
 
 const entities = []
-// const queuedEntities = []
-const tribes = ['cow', 'wolf', 'sheep']
+const animals = ['cow', 'wolf', 'sheep']
+let wolfEaten = 0
+let sheepEaten = 0
+let cowEaten = 0
 
-for (let i = 0; i < 10; i++) {
-  for (const tribe of tribes) {
-    entities.push(new Entity(Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1], tribe))
+function generateEntities() {
+  for (let i = 0; i < 5; i++) {
+    for (const animal of animals) {
+      entities.push(new Entity(Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1], animal))
+    }
+  }
+  checkTouching()
+}
+
+function checkTouching() {
+  for (let i = 0; i < entities.length; i++) {
+    for (let j = i + 1; j < entities.length; j++) {
+      const entityA = entities[i]
+      const entityB = entities[j]
+
+      if (entityA.distanceTo(entityB) < constants.ICON_WIDTH) {
+        entityB.x = Math.random() * CANVAS_SIZE[0]
+        entityB.y = Math.random() * CANVAS_SIZE[1]
+      }
+    }
   }
 }
+
+generateEntities()
 
 function adjustMovement() {
   ctx.clearRect(0, 0, CANVAS_SIZE[0], CANVAS_SIZE[1])
@@ -111,19 +133,30 @@ function adjustMovement() {
       entity.moveTowards(CANVAS_SIZE, closestTarget.x, closestTarget.y)
       if (entity.distanceTo(closestTarget) < constants.CONVERSION_RADIUS) {
         // closestTarget.type = entity.type
+        explosion.play()
+        if (closestTarget.type === 'wolf') {
+          wolfEaten++
+        } else if (closestTarget.type === 'sheep') {
+          sheepEaten++
+        } else if (closestTarget.type === 'cow') {
+          cowEaten++
+        }
+        for (let i = 0; i < 30; i++) {
+          bloodParticles.push(new BloodParticle(closestTarget.x, closestTarget.y))
+        }
         if (Math.random() < 0.5) {
-          entity.x = Math.random() * CANVAS_SIZE[0]
+          closestTarget.x = Math.random() * CANVAS_SIZE[0]
           if (Math.random() < 0.5) {
-            entity.y = -200
+            closestTarget.y = -200
           } else {
-            entity.y = CANVAS_SIZE[1] + 200
+            closestTarget.y = CANVAS_SIZE[1] + 200
           }
         } else {
-          entity.y = Math.random() * CANVAS_SIZE[1]
+          closestTarget.y = Math.random() * CANVAS_SIZE[1]
           if (Math.random() < 0.5) {
-            entity.x = -200
+            closestTarget.x = -200
           } else {
-            entity.x = CANVAS_SIZE[0] + 200
+            closestTarget.x = CANVAS_SIZE[0] + 200
           }
         }
       }
@@ -185,32 +218,6 @@ function draw(entity) {
     )
 
     ctx.restore()
-
-    // ctx.save()
-
-    // // Apply wobble by slightly rotating the image back and forth
-    // const rotationAngle = Math.sin(entity.wobblePhase) * 0.2 // Small rotation (in radians)
-
-    // // Move to entity position and apply rotation
-    // ctx.translate(entity.x, entity.y)
-    // ctx.rotate(rotationAngle)
-
-    // // Draw the image centered with wobble effect
-    // ctx.drawImage(
-    //   img,
-    //   -constants.ICON_WIDTH / 2,
-    //   -constants.ICON_HEIGHT / 2 + entity.wobbleOffset / 2, // Vertical wobble
-    //   constants.ICON_WIDTH,
-    //   constants.ICON_HEIGHT
-    // )
-    // ctx.restore()
-    // ctx.restore()
-    // ctx.drawImage(img, entity.x, entity.y)
-    // ctx.restore()
-    // ctx.fillStyle = entity.color
-    // console.log('Drawing entity:', entity)
-    // ctx.fillRect(entity.x, entity.y, entity.size, entity.size)
-    ctx.restore()
   } else {
     // Fallback to colored circle if image not loaded
     ctx.fillStyle = entity.color
@@ -221,14 +228,175 @@ function draw(entity) {
   // ctx.drawImage(entity.image, entity.x, entity.y)
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 await preloadImages()
-// gameMusic.play()
-// gameMusic.loop = true
-// gameMusic.volume = 0.5
+
+const backgroundMusic = new Audio('./assets/sound/music/feedthemachine.mp3')
+
+// Play music
+function playBackgroundMusic() {
+  backgroundMusic.loop = true
+  backgroundMusic.volume = 0.1
+  backgroundMusic.play().catch((e) => console.log('Audio play failed:', e))
+}
+
+// UI assets
+
+const menuLogo = document.querySelector('#menu')
+const startButton = document.querySelector('#startGameButton')
+const settingsButton = document.querySelector('#settingsButton')
+const cloudButton = document.querySelector('#cloudButton')
+const tutorialScreen = document.querySelector('#tutorialScreen')
+
+startButton.addEventListener('click', async () => {
+  menuLogo.style.top = '20%'
+  menuLogo.style.animation = 'fadeOut 2s forwards'
+  startButton.style.animation = 'fadeOut 2s forwards'
+  startButton.style.hover = 'none'
+  setTimeout(function () {
+    menuLogo.style.display = 'none'
+  }, 2000)
+  tutorialScreen.style.animation = 'dropAndBounce 2s ease-out forwards'
+  tutorialScreen.style.display = 'block'
+})
+
+settingsButton.addEventListener('click', () => {
+  console.log('Settings button clicked')
+})
+
+cloudButton.addEventListener('click', () => {
+  tutorialScreen.style.top = '20%'
+  tutorialScreen.style.animation = 'fadeOut 2s forwards'
+  beginGameCountdown()
+  setTimeout(function () {
+    gameStart = true
+    requestAnimationFrame(gameLoop)
+    tutorialScreen.style.display = 'none'
+    roundCountdown()
+  }, 3200)
+})
+
+const gameCountdown = document.querySelector('#gameCountdown')
+const roundLength = 1
+function beginGameCountdown() {
+  let count = 3
+  const interval = setInterval(() => {
+    console.log(count)
+    gameCountdown.innerHTML = `${count}`
+    count--
+    if (count == 0) {
+      clearInterval(interval)
+      gameCountdown.innerHTML = '1'
+    }
+  }, 1000)
+}
+
+const baa = new Audio('./assets/sound/soundfx/baa.mp3')
+const moo = new Audio('./assets/sound/soundfx/moo.mp3')
+const woof = new Audio('./assets/sound/soundfx/woof.mp3')
+
+const animalSounds = [baa, moo, woof]
+
+function roundCountdown() {
+  let count = roundLength
+  const interval = setInterval(() => {
+    gameCountdown.innerHTML = `${count}`
+    count--
+    if (Math.random() < 0.3) {
+      console.log(0)
+      let randomSound = animalSounds[Math.floor(Math.random() * animalSounds.length)]
+      randomSound.volume = 1
+      randomSound.play()
+    }
+    if (count == 0) {
+      clearInterval(interval)
+      gameCountdown.innerHTML = '0'
+      activateClipboard()
+      resetRound()
+    }
+  }, 1000)
+}
+
+function resetRound() {
+  console.log(cowEaten, sheepEaten, wolfEaten)
+  gameStart = false
+  entities.length = 0
+  bloodParticles.length = 0
+  // generateEntities()
+}
+
+const clipboard = document.querySelector('#clipboardContainer')
+const clipboardImage = document.querySelector('#clipboard')
+const clipboardElements1 = document.querySelector('#clipboardElements1')
+const clipboardElements2 = document.querySelector('#clipboardElements2')
+const clipboardButton = document.querySelector('#clipboardButton')
+const pageFlipSound = new Audio('./assets/sound/soundfx/pageflip.mp3')
+
+function activateClipboard() {
+  clipboard.style.display = 'block'
+  clipboard.style.animation = 'slideUp1 2s ease-in forwards'
+}
+
+clipboardButton.addEventListener('click', () => {
+  pageFlipSound.play()
+  clipboardImage.src = './assets/images/UI/R2clipboard.png'
+  clipboardElements1.style.display = 'none'
+  clipboardElements2.style.display = 'block'
+})
+
+// Blood particle system
+const bloodParticles = []
+
+class BloodParticle {
+  constructor(x, y, color) {
+    this.x = x
+    this.y = y
+    this.color = color || this.getRandomBloodColor()
+    this.size = Math.random() * 5 + 2
+    this.speedX = Math.random() * 6 - 3
+    this.speedY = Math.random() * 6 - 3
+    this.gravity = 0.01
+    this.friction = 0.95
+    this.life = 100
+    this.decay = Math.random() * 0.6 + 0.4
+  }
+
+  getRandomBloodColor() {
+    const shades = [
+      '#8a0303', // Dark red
+      '#b00202', // Medium red
+      '#d10202', // Bright red
+      '#5c0101', // Very dark red
+    ]
+    return shades[Math.floor(Math.random() * shades.length)]
+  }
+
+  update() {
+    this.speedX *= this.friction
+    this.speedY *= this.friction
+    this.speedY += this.gravity
+    this.x += this.speedX
+    this.y += this.speedY
+    this.life -= this.decay
+  }
+
+  draw() {
+    ctx.save()
+    ctx.globalAlpha = this.life / 100
+    ctx.fillStyle = this.color
+    ctx.beginPath()
+    // Draw irregular blood splatter shapes
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
+}
 
 // Game loop
 async function gameLoop() {
-  gameStart = true
+  // playBackgroundMusic()
+
   CANVAS_SIZE[0] = window.innerWidth
   CANVAS_SIZE[1] = window.innerHeight - 340
   canvas.width = CANVAS_SIZE[0]
@@ -237,6 +405,13 @@ async function gameLoop() {
   // loadAnimation()
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
   adjustMovement()
+  for (const particle of bloodParticles) {
+    particle.update()
+    particle.draw()
+    if (particle.life <= 0) {
+      bloodParticles.pop(particle)
+    }
+  }
 
   if (gameStart) {
     requestAnimationFrame(gameLoop)

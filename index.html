@@ -7,47 +7,67 @@
     <script type="module" src="/scripts/main.js"></script>
   </head>
   <body>
+    <!-- <audio id="gameMusic" src="assets\sound\feedthemachine.mp3"></audio> -->
     <div id="loadingScreen"></div>
     <img id="menu" src="./assets/images/UI/TitleRev2.png" />
     <div id="sky">
-      <audio id="gameMusic" src="assets\sound\feedthemachine.mp3"></audio>
       <div id="layer1Background"></div>
       <div id="layer3Background"></div>
       <div id="layer2Background">
         <canvas id="gameCanvas"></canvas>
         <button id="startGame" src></button>
-        <!-- <img id="startGameButton" src="./assets/images/UI/blank_button1.png"> -->
-        <div id="clipboardContainer" style="display: none">
-          <img draggable="false" id="clipboard" src="./assets/images/UI/R1clipboard.png" />
-          <div style="position: absolute; top: 55px; left: 440px; width: 170px">
-            <p style="font-size: 4em; color: rgb(114, 63, 22)">1</p>
+        <img id="settingsButton" src="./assets/images/UI/settings.cloud.png" />
+        <img id="startGameButton" src="./assets/images/UI/startCloud.png" />
+        <div id="tutorialScreen">
+          <img src="./assets/images/UI/tutorial.sprite.png" />
+          <div style="position: absolute; top: 238px; left: 608px; width: 170px">
+            <img src="./assets/images/UI/murder.gif" />
           </div>
-          <div style="position: absolute; top: 190px; left: 460px; width: 170px">
-            <input class="clipboardInput" type="number" name="num" id="" />
-          </div>
-          <div style="position: absolute; top: 287px; left: 460px; width: 170px">
-            <input class="clipboardInput" type="number" name="num" id="" />
-          </div>
-          <div style="position: absolute; top: 379px; left: 460px; width: 170px">
-            <input class="clipboardInput" type="number" name="num" id="" />
-          </div>
-          <div style="position: absolute; top: 548px; left: 465px; width: 170px">
-            <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
-          </div>
-          <div style="position: absolute; top: 548px; left: 565px; width: 170px">
-            <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
-          </div>
-          <div style="position: absolute; top: 620px; left: 465px; width: 170px">
-            <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
-          </div>
-          <div style="position: absolute; top: 620px; left: 565px; width: 170px">
-            <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
-          </div>
-          <div style="position: absolute; top: 753px; left: 192px; width: 170px">
-            <input class="clipboardButton" type="button" value="Proceed" />
+          <div style="position: absolute; top: 453px; left: 360px; width: 170px">
+            <button id="cloudButton">Continue</button>
           </div>
         </div>
-
+        <div id="gameCountdown"></div>
+        <div id="clipboardContainer" style="display: none">
+          <img draggable="false" id="clipboard" src="./assets/images/UI/R1clipboard.png" />
+          <div id="clipboardElements1">
+            <div style="position: absolute; top: 55px; left: 440px; width: 170px">
+              <p style="font-size: 4em; color: rgb(114, 63, 22)">1</p>
+            </div>
+            <div style="position: absolute; top: 190px; left: 460px; width: 170px">
+              <input class="clipboardInput" type="number" name="num" id="" />
+            </div>
+            <div style="position: absolute; top: 287px; left: 460px; width: 170px">
+              <input class="clipboardInput" type="number" name="num" id="" />
+            </div>
+            <div style="position: absolute; top: 379px; left: 460px; width: 170px">
+              <input class="clipboardInput" type="number" name="num" id="" />
+            </div>
+            <div style="position: absolute; top: 548px; left: 465px; width: 170px">
+              <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
+            </div>
+            <div style="position: absolute; top: 548px; left: 565px; width: 170px">
+              <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
+            </div>
+            <div style="position: absolute; top: 620px; left: 465px; width: 170px">
+              <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
+            </div>
+            <div style="position: absolute; top: 620px; left: 565px; width: 170px">
+              <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
+            </div>
+            <div style="position: absolute; top: 753px; left: 192px; width: 170px">
+              <input id="clipboardButton" type="button" value="Proceed" />
+            </div>
+          </div>
+          <div id="clipboardElements2" style="display: none">
+            <div style="position: absolute; top: 795px; left: 80px; width: 170px">
+              <input class="clipboardButton" id="clipboardLeftButton" type="button" value="Correlation" />
+            </div>
+            <div style="position: absolute; top: 794px; left: 401px; width: 170px">
+              <input class="clipboardButton" id="clipboardRightButton" type="button" value="Causation" />
+            </div>
+          </div>
+        </div>
         <!-- </div> -->
       </div>
     </div>

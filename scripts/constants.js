@@ -9,8 +9,8 @@ export const REPULSION_RADIUS = 80
 export const COOLDOWN_DURATION = 5000
 export const ICON_WIDTH = 52
 export const ICON_HEIGHT = 36
-export const WOBBLE_SPEED = 0.1 // How fast the wobble oscillates
-export const WOBBLE_AMOUNT = 5 // How much the image wobbles (in pixels)
+export const WOBBLE_SPEED = 0.07 // How fast the wobble oscillates
+export const WOBBLE_AMOUNT = 3 // How much the image wobbles (in pixels)
 export const FLIP_THRESHOLD = 10
 export const ANIMAL_TYPES = {
   cow: {
