@@ -6,6 +6,10 @@ let first = 0
 // Setup
 const canvas = document.getElementById('gameCanvas')
 const ctx = canvas.getContext('2d')
+const layer1Background = document.querySelector('#layer1Background')
+const layer2Background = document.querySelector('#layer2Background')
+const select = new Audio('./assets/sound/soundfx/blipSelect.wav')
+select.volume = 0.5
 const explosion = new Audio('./assets/sound/soundfx/explosion.wav')
 explosion.volume = 0.7
 let CANVAS_SIZE = [1920, 1080]
@@ -99,6 +103,12 @@ function adjustMovement() {
     } else if (entity.type === 'sheep') {
       targets = entities.filter((e) => e.type === 'cow')
       threats = entities.filter((e) => e.type === 'wolf')
+    } else if (entity.type === 'shark') {
+      targets = entities.filter((e) => e.type === 'iceCream')
+      threats = []
+    } else if (entity.type === 'iceCream') {
+      threats = entities.filter((e) => e.type === 'shark')
+      targets = []
     } else {
       targets = entities.filter((e) => e.type === 'sheep')
       threats = entities.filter((e) => e.type === 'cow')
@@ -198,17 +208,14 @@ function draw(entity) {
     // Apply directional rotation (adjusted for right-facing images)
     // ctx.rotate(entity.facingAngle)
 
-    // Apply wobble by slightly rotating the image back and forth
-    const rotationAngle = Math.sin(entity.wobblePhase) * 0.2 // Small rotation (in radians)
+    const rotationAngle = Math.sin(entity.wobblePhase) * 0.2
 
-    // Move to entity position and apply rotation
     ctx.translate(entity.x, entity.y)
     if (!entity.facingRight) {
-      ctx.scale(-1, 1) // Mirror horizontally
+      ctx.scale(-1, 1)
     }
     ctx.rotate(rotationAngle)
 
-    // Draw image (adjusted pivot for right-facing)
     ctx.drawImage(
       img,
       entity.facingRight ? -constants.ICON_WIDTH / 2 : -constants.ICON_WIDTH / 2,
@@ -219,13 +226,11 @@ function draw(entity) {
 
     ctx.restore()
   } else {
-    // Fallback to colored circle if image not loaded
     ctx.fillStyle = entity.color
     ctx.beginPath()
     ctx.arc(entity.x, entity.y, entity.size, 0, Math.PI * 2)
     ctx.fill()
   }
-  // ctx.drawImage(entity.image, entity.x, entity.y)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -245,11 +250,12 @@ function playBackgroundMusic() {
 
 const menuLogo = document.querySelector('#menu')
 const startButton = document.querySelector('#startGameButton')
-const settingsButton = document.querySelector('#settingsButton')
+// const settingsButton = document.querySelector('#settingsButton')
 const cloudButton = document.querySelector('#cloudButton')
 const tutorialScreen = document.querySelector('#tutorialScreen')
 
 startButton.addEventListener('click', async () => {
+  select.play()
   menuLogo.style.top = '20%'
   menuLogo.style.animation = 'fadeOut 2s forwards'
   startButton.style.animation = 'fadeOut 2s forwards'
@@ -261,11 +267,12 @@ startButton.addEventListener('click', async () => {
   tutorialScreen.style.display = 'block'
 })
 
-settingsButton.addEventListener('click', () => {
-  console.log('Settings button clicked')
-})
+// settingsButton.addEventListener('click', () => {
+//   console.log('Settings button clicked')
+// })
 
 cloudButton.addEventListener('click', () => {
+  select.play()
   tutorialScreen.style.top = '20%'
   tutorialScreen.style.animation = 'fadeOut 2s forwards'
   beginGameCountdown()
@@ -277,8 +284,16 @@ cloudButton.addEventListener('click', () => {
   }, 3200)
 })
 
+const monster = document.querySelector('#monster')
 const gameCountdown = document.querySelector('#gameCountdown')
-const roundLength = 45
+const roundLength = 50
+const countingDuration = 69000 // 45 seconds in ms
+const startTime = Date.now()
+
+// Make monster visible
+monster.style.opacity = '0.75' // Semi-transparent
+
+let monsterInterval
 function beginGameCountdown() {
   let count = 3
   const interval = setInterval(() => {
@@ -292,6 +307,11 @@ function beginGameCountdown() {
   }, 1000)
 }
 
+function stopMonster() {
+  clearInterval(monsterInterval)
+  document.getElementById('monster').style.opacity = '0'
+}
+
 const baa = new Audio('./assets/sound/soundfx/baa.mp3')
 const moo = new Audio('./assets/sound/soundfx/moo.mp3')
 const woof = new Audio('./assets/sound/soundfx/woof.mp3')
@@ -303,6 +323,17 @@ function roundCountdown() {
   const interval = setInterval(() => {
     gameCountdown.innerHTML = `${count}`
     count--
+    monsterInterval = setInterval(() => {
+      // Calculate progress (0 to 1)
+      const progress = (Date.now() - startTime) / countingDuration
+
+      // Position from left edge (0% to 100% + width)
+      if (progress <= 1) {
+        monster.style.left = `${-500 + window.innerWidth * progress}px`
+      } else {
+        stopMonster()
+      }
+    }, 16) // ~60fps
     if (Math.random() < 0.3) {
       console.log(0)
       let randomSound = animalSounds[Math.floor(Math.random() * animalSounds.length)]
@@ -313,7 +344,7 @@ function roundCountdown() {
       clearInterval(interval)
       gameCountdown.innerHTML = '0'
       activateClipboard()
-      resetRound()
+      gameStart = false
     }
   }, 1000)
 }
@@ -331,19 +362,107 @@ const clipboardImage = document.querySelector('#clipboard')
 const clipboardElements1 = document.querySelector('#clipboardElements1')
 const clipboardElements2 = document.querySelector('#clipboardElements2')
 const clipboardButton = document.querySelector('#clipboardButton')
+const clipboardLeftButton = document.querySelector('#clipboardLeftButton')
+const clipboardRightButton = document.querySelector('#clipboardRightButton')
+const proceedButton = document.querySelector('#proceedButton')
 const pageFlipSound = new Audio('./assets/sound/soundfx/pageflip.mp3')
+const cowGuessProp = document.querySelector('#cowGuess')
+const wolfGuessProp = document.querySelector('#wolfGuess')
+const sheepGuessProp = document.querySelector('#sheepGuess')
+let cowGuess, wolfGuess, sheepGuess
 
 function activateClipboard() {
   clipboard.style.display = 'block'
   clipboard.style.animation = 'slideUp1 2s ease-in forwards'
+  clipboardElements1.style.display = 'block'
+  clipboardElements2.style.display = 'none'
+  clipboardElements3.style.display = 'none'
 }
 
 clipboardButton.addEventListener('click', () => {
   pageFlipSound.play()
-  clipboardImage.src = './assets/images/UI/R2clipboard.png'
+  clipboardImage.src = './assets/images/UI/EmptyClipboard.png'
   clipboardElements1.style.display = 'none'
+  clipboardElements3.style.display = 'block'
+  getUserGuess()
+  setClipboard3data()
+})
+
+proceedButton.addEventListener('click', () => {
+  pageFlipSound.play()
+  clipboardImage.src = './assets/images/UI/R2clipboard.png'
+  clipboardElements3.style.display = 'none'
   clipboardElements2.style.display = 'block'
 })
+
+clipboardLeftButton.addEventListener('click', () => {
+  pageFlipSound.play()
+  clipboardImage.src = './assets/images/UI/R1clipboard.png'
+  clipboardElements3.style.display = 'none'
+  clipboardElements1.style.display = 'block'
+  clipboard.style.top = '50%'
+  clipboard.style.animation = 'fadeOut 2s forwards'
+  generateRound2()
+})
+
+clipboardRightButton.addEventListener('click', () => {
+  pageFlipSound.play()
+  clipboardImage.src = './assets/images/UI/R1clipboard.png'
+  clipboardElements3.style.display = 'none'
+  clipboardElements1.style.display = 'block'
+  clipboard.style.top = '50%'
+  clipboard.style.animation = 'fadeOut 2s forwards'
+  generateRound2()
+})
+
+function getUserGuess() {
+  cowGuess = cowGuessProp.value
+  wolfGuess = wolfGuessProp.value
+  sheepGuess = sheepGuessProp.value
+  cowGuessProp.value = ''
+  wolfGuessProp.value = ''
+  sheepGuessProp.value = ''
+}
+
+function setClipboard3data() {
+  const cowKilledLabel = document.querySelector('#cowKilled')
+  const wolfKilledLabel = document.querySelector('#wolvesKilled')
+  const sheepKilledLabel = document.querySelector('#sheepKilled')
+  const cowKilledGuessLabel = document.querySelector('#cowKilledGuess')
+  const wolfKilledGuessLabel = document.querySelector('#wolvesKilledGuess')
+  const sheepKilledGuessLabel = document.querySelector('#sheepKilledGuess')
+
+  cowKilledLabel.innerHTML = `Cows killed: ${cowEaten}`
+  wolfKilledLabel.innerHTML = `Wolves killed: ${wolfEaten}`
+  sheepKilledLabel.innerHTML = `Sheep killed: ${sheepEaten}`
+  cowKilledGuessLabel.innerHTML = `Your Cow count: ${cowGuess}`
+  wolfKilledGuessLabel.innerHTML = `Your Wolves count: ${wolfGuess}`
+  sheepKilledGuessLabel.innerHTML = `Your Sheep count: ${sheepGuess}`
+}
+
+function generateRound2() {
+  // Reset round
+  resetRound()
+  // Update entities
+  let newAnimals = ['shark', 'iceCream']
+  entities.length = 0
+  for (let i = 0; i < 10; i++) {
+    for (const animal of newAnimals) {
+      entities.push(new Entity(Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1], animal))
+    }
+  }
+  checkTouching()
+
+  // Update game state
+  gameLoop()
+  beginGameCountdown()
+  setTimeout(function () {
+    gameStart = true
+    requestAnimationFrame(gameLoop)
+    tutorialScreen.style.display = 'none'
+    roundCountdown()
+  }, 3200)
+}
 
 // Blood particle system
 const bloodParticles = []
@@ -395,7 +514,7 @@ class BloodParticle {
 
 // Game loop
 async function gameLoop() {
-  // playBackgroundMusic()
+  playBackgroundMusic()
 
   CANVAS_SIZE[0] = window.innerWidth
   CANVAS_SIZE[1] = window.innerHeight - 340
