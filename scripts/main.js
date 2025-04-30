@@ -6,6 +6,11 @@ let first = 0
 // Setup
 const canvas = document.getElementById('gameCanvas')
 const ctx = canvas.getContext('2d')
+let CANVAS_SIZE = [1920, 1080]
+let gameMusic = document.querySelector('.battleMusic')
+let gameStart = false
+// WINDOW_WIDTH = 1920
+// WINDOW_HEIGHT = 1080
 
 // Image cache
 const imageCache = {}
@@ -47,17 +52,17 @@ function getRandomInt(min, max) {
 }
 
 const entities = []
-const queuedEntities = []
+// const queuedEntities = []
 const tribes = ['cow', 'wolf', 'sheep']
 
 for (let i = 0; i < 10; i++) {
   for (const tribe of tribes) {
-    entities.push(new Entity(Math.random() * constants.WINDOW_WIDTH, Math.random() * constants.WINDOW_HEIGHT, tribe))
+    entities.push(new Entity(Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1], tribe))
   }
 }
 
 function adjustMovement() {
-  ctx.clearRect(0, 0, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)
+  ctx.clearRect(0, 0, CANVAS_SIZE[0], CANVAS_SIZE[1])
 
   // Draw background (in a real implementation, you'd draw an image here)
   // ctx.fillStyle = '#333'
@@ -80,7 +85,7 @@ function adjustMovement() {
     // Repel from same tribe
     for (const other of entities) {
       if (entity !== other && entity.type === other.type) {
-        entity.repelFrom(other)
+        entity.repelFrom(CANVAS_SIZE, other)
       }
     }
 
@@ -101,14 +106,29 @@ function adjustMovement() {
 
     // Movement logic
     if (closestThreat && entity.distanceTo(closestThreat) < constants.DETECTION_RADIUS) {
-      entity.moveAwayFrom(closestThreat.x, closestThreat.y)
+      entity.moveAwayFrom(CANVAS_SIZE, closestThreat.x, closestThreat.y)
     } else if (closestTarget && entity.distanceTo(closestTarget) < constants.DETECTION_RADIUS) {
-      entity.moveTowards(closestTarget.x, closestTarget.y)
+      entity.moveTowards(CANVAS_SIZE, closestTarget.x, closestTarget.y)
       if (entity.distanceTo(closestTarget) < constants.CONVERSION_RADIUS) {
-        closestTarget.type = entity.type
+        // closestTarget.type = entity.type
+        if (Math.random() < 0.5) {
+          entity.x = Math.random() * CANVAS_SIZE[0]
+          if (Math.random() < 0.5) {
+            entity.y = -200
+          } else {
+            entity.y = CANVAS_SIZE[1] + 200
+          }
+        } else {
+          entity.y = Math.random() * CANVAS_SIZE[1]
+          if (Math.random() < 0.5) {
+            entity.x = -200
+          } else {
+            entity.x = CANVAS_SIZE[0] + 200
+          }
+        }
       }
     } else {
-      entity.moveTowards(Math.random() * constants.WINDOW_WIDTH, Math.random() * constants.WINDOW_HEIGHT)
+      entity.moveTowards(CANVAS_SIZE, Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1])
     }
 
     draw(entity)
@@ -202,12 +222,25 @@ function draw(entity) {
 }
 
 await preloadImages()
+// gameMusic.play()
+// gameMusic.loop = true
+// gameMusic.volume = 0.5
+
 // Game loop
 async function gameLoop() {
+  gameStart = true
+  CANVAS_SIZE[0] = window.innerWidth
+  CANVAS_SIZE[1] = window.innerHeight - 340
+  canvas.width = CANVAS_SIZE[0]
+  canvas.height = CANVAS_SIZE[1]
+
+  // loadAnimation()
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
   adjustMovement()
 
-  requestAnimationFrame(gameLoop)
+  if (gameStart) {
+    requestAnimationFrame(gameLoop)
+  }
 }
 
 // Start the game

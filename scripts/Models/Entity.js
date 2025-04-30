@@ -29,27 +29,27 @@ export default class Entity {
     }
   }
 
-  moveTowards(targetX, targetY) {
+  moveTowards(CANVAS_SIZE, targetX, targetY) {
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x += (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y += (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
-    this.avoidEdges()
+    this.x += constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y += constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
+    this.avoidEdges(CANVAS_SIZE)
   }
 
-  moveAwayFrom(targetX, targetY) {
+  moveAwayFrom(CANVAS_SIZE, targetX, targetY) {
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x -= (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y -= (constants.SPEED + Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
-    this.avoidEdges()
+    this.x -= constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y -= constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
+    this.avoidEdges(CANVAS_SIZE)
   }
 
   distanceTo(other) {
     return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2)
   }
 
-  repelFrom(other) {
+  repelFrom(CANVAS_SIZE, other) {
     if (this.distanceTo(other) < constants.REPULSION_RADIUS) {
-      this.moveAwayFrom(other.x, other.y)
+      this.moveAwayFrom(CANVAS_SIZE, other.x, other.y)
     }
   }
 
@@ -66,16 +66,16 @@ export default class Entity {
     ctx.restore()
   }
 
-  avoidEdges() {
+  avoidEdges(CANVAS_SIZE) {
     if (this.x < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x + constants.EDGE_AVOID_RADIUS, this.y)
-    } else if (this.x > constants.WINDOW_WIDTH - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x - constants.EDGE_AVOID_RADIUS, this.y)
+      this.moveTowards(CANVAS_SIZE, this.x + constants.EDGE_AVOID_RADIUS, this.y)
+    } else if (this.x > CANVAS_SIZE[0] - constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(CANVAS_SIZE, this.x - constants.EDGE_AVOID_RADIUS, this.y)
     }
     if (this.y < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x, this.y + constants.EDGE_AVOID_RADIUS)
-    } else if (this.y > constants.WINDOW_HEIGHT - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(this.x, this.y - constants.EDGE_AVOID_RADIUS)
+      this.moveTowards(CANVAS_SIZE, this.x, this.y + constants.EDGE_AVOID_RADIUS)
+    } else if (this.y > CANVAS_SIZE[1] - constants.EDGE_AVOID_RADIUS) {
+      this.moveTowards(CANVAS_SIZE, this.x, this.y - constants.EDGE_AVOID_RADIUS)
     }
   }
 

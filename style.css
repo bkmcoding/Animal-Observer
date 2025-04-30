@@ -1,40 +1,139 @@
 *,
 :root {
+  font-family: Georgia, 'Times New Roman', Times, serif;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
+body {
+  background-color: rgb(34, 31, 31);
+  overflow: hidden;
+}
+
 canvas {
-  background: #eee;
+  /* background: #eee; */
   display: block;
-  margin: 20px auto;
-  border: 2px solid #333;
+  margin-top: 340px;
+  /* border: 2px solid #333; */
 }
 
 #sky {
   background-color: #49abd1;
   display: block;
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
 }
 
-#background {
+#loadingScreen {
+  background: rgb(34, 31, 31);
   position: absolute;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
   width: 100vw;
   height: 100vh;
-  background-image: url('./assets/images/UI/progressedLandscape.png');
+  margin: 0 auto;
+  z-index: 1000;
+  animation: slideDown 1.2s ease-in-out forwards;
+  animation-delay: 1.8s;
+}
+
+#layer1Background {
+  position: absolute;
+  top: -262%;
+  left: 50%;
+  translate: calc(-50% + -1px);
+  width: 100vw;
+  height: 100vh;
+  background-image: url('./assets/images/UI/LandscapeDOWN.png');
   background-size: cover;
+  animation: slideUp2 4s ease-in forwards;
+  animation-delay: 3s;
+}
+
+#layer2Background {
+  position: absolute;
+  top: 200%;
+  left: 50%;
+  translate: calc(-50% + -1px) -50%;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('./assets/images/UI/LandscapeUP.png');
+  background-size: cover;
+  animation: slideUp1 4s ease-in forwards;
+  animation-delay: 3s;
 }
 
 #menu {
   position: absolute;
-  top: 20%;
-  left: calc(50% - 480px);
+  top: -50%;
+  left: 50%;
+  translate: calc(-50% - 50px) 0%;
   width: 960px;
   height: 525px;
+  z-index: 100;
+  animation: dropAndBounce 2s ease-out forwards;
+  animation-delay: 3s;
+}
+
+#clipboardContainer {
+  display: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.clipboardInput {
+  background-color: #ebeef2;
+  width: 100%;
+  font-size: 1.5em;
+  padding: 12px 20px;
+  border: none;
+  margin: 8px 0;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.clipboardInput:focus {
+  outline: none;
+}
+
+/* .clipboardCheckbox {
+  border: none;
+  outline: none;
+  width: 35px;
+  height: 35px;
+} */
+
+.clipboardCheckbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.clipboardCheckbox:checked::after {
+  content: '✓';
+  color: black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+}
+
+.clipboardButton {
+  background-color: none;
+  text-align: center;
+  border: none;
+  width: 316px;
+  height: 82px;
+  font-size: 2.25em;
 }
 
 #startGameButton {
@@ -43,4 +142,110 @@ canvas {
   left: calc(50% - 128px * 3 / 2);
   width: calc(128px * 3);
   height: calc(96px * 3);
+}
+
+.loading-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  z-index: 100;
+}
+
+.game-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px; /* Adjust based on your logo size */
+  height: auto;
+  z-index: 101;
+}
+
+@keyframes slideDown {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes dropAndBounce {
+  0% {
+    top: -500px;
+    transform: scale(1);
+  }
+  60% {
+    top: 25%;
+    transform: scale(1);
+  }
+  70% {
+    top: 27%;
+    transform: scale(1.1, 0.9);
+  }
+  80% {
+    top: 25%;
+    transform: scale(0.95, 1.05);
+  }
+  90% {
+    top: 26%;
+    transform: scale(1.02, 0.98);
+  }
+  100% {
+    top: 25%;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp1 {
+  0% {
+    top: 200vh;
+  }
+  60% {
+    top: 90%;
+  }
+  70% {
+    top: 80%;
+  }
+  80% {
+    top: 70%;
+  }
+  90% {
+    top: 60%;
+  }
+  100% {
+    top: 50%;
+  }
+}
+
+@keyframes slideUp2 {
+  0% {
+    top: calc(200vh - 112%);
+  }
+  60% {
+    top: calc(80% - 112%);
+  }
+  70% {
+    top: calc(75% - 112%);
+  }
+  80% {
+    top: calc(70% - 112%);
+  }
+  90% {
+    top: calc(55% - 112%);
+  }
+  100% {
+    top: calc(50% - 112%);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
