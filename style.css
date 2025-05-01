@@ -44,7 +44,7 @@ canvas {
   translate: calc(-50% + -1px);
   width: 100vw;
   height: 100vh;
-  background-image: url('./assets/images/UI/LandscapeDOWN.png');
+  background-image: url('./assets/images/UI/landscapeDOWN.png');
   background-size: cover;
   animation: slideUp2 4s ease-in forwards;
   animation-delay: 3s;
@@ -87,7 +87,7 @@ canvas {
 
 #monster {
   position: absolute;
-  top: 180px;
+  top: 177px;
   left: -10%;
   z-index: 0;
   translate: 0% 0%;
