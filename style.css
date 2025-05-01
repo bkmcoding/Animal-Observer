@@ -44,7 +44,7 @@ canvas {
   translate: calc(-50% + -1px);
   width: 100vw;
   height: 100vh;
-  background-image: url('./assets/images/UI/landscapeDOWN.png');
+  background-image: url('./assets/images/UI/landscapeDown.png');
   background-size: cover;
   animation: slideUp2 4s ease-in forwards;
   animation-delay: 3s;
