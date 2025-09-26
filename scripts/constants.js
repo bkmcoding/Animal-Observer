@@ -1,7 +1,7 @@
 export const WINDOW_WIDTH = 1920
 export const WINDOW_HEIGHT = 1080
 export const ENTITY_RADIUS = 5
-export const SPEED = 0.5
+export const SPEED = 100
 export const DETECTION_RADIUS = 150
 export const CONVERSION_RADIUS = 50
 export const EDGE_AVOID_RADIUS = 60

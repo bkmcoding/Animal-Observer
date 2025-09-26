@@ -14,6 +14,7 @@ const explosion = new Audio('./assets/sound/soundfx/explosion.wav')
 explosion.volume = 0.7
 let CANVAS_SIZE = [1920, 1080]
 let gameStart = false
+let lastFrameTime = 0
 // WINDOW_WIDTH = 1920
 // WINDOW_HEIGHT = 1080
 
@@ -87,10 +88,9 @@ function checkTouching() {
 
 generateEntities()
 
-function adjustMovement() {
+function adjustMovement(deltaTime) {
   ctx.clearRect(0, 0, CANVAS_SIZE[0], CANVAS_SIZE[1])
 
-  // Draw background (in a real implementation, you'd draw an image here)
   // ctx.fillStyle = '#333'
   // ctx.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
@@ -117,7 +117,7 @@ function adjustMovement() {
     // Repel from same tribe
     for (const other of entities) {
       if (entity !== other && entity.type === other.type) {
-        entity.repelFrom(CANVAS_SIZE, other)
+        entity.repelFrom(CANVAS_SIZE, other, deltaTime)
       }
     }
 
@@ -132,15 +132,14 @@ function adjustMovement() {
     let closestThreat =
       threats.length > 0
         ? threats.reduce((closest, current) =>
-            entity.distanceTo(current) < entity.distanceTo(closest) ? current : closest
-          )
+            entity.distanceTo(current) < entity.distanceTo(closest) ? current : closest   )
         : null
 
     // Movement logic
     if (closestThreat && entity.distanceTo(closestThreat) < constants.DETECTION_RADIUS) {
-      entity.moveAwayFrom(CANVAS_SIZE, closestThreat.x, closestThreat.y)
+      entity.moveAwayFrom(CANVAS_SIZE, closestThreat.x, closestThreat.y, deltaTime)
     } else if (closestTarget && entity.distanceTo(closestTarget) < constants.DETECTION_RADIUS) {
-      entity.moveTowards(CANVAS_SIZE, closestTarget.x, closestTarget.y)
+      entity.moveTowards(CANVAS_SIZE, closestTarget.x, closestTarget.y, deltaTime)
       if (entity.distanceTo(closestTarget) < constants.CONVERSION_RADIUS) {
         // closestTarget.type = entity.type
         explosion.play()
@@ -171,7 +170,7 @@ function adjustMovement() {
         }
       }
     } else {
-      entity.moveTowards(CANVAS_SIZE, Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1])
+      entity.moveTowards(CANVAS_SIZE, Math.random() * CANVAS_SIZE[0], Math.random() * CANVAS_SIZE[1], deltaTime)
     }
 
     draw(entity)
@@ -256,7 +255,7 @@ const tutorialScreen = document.querySelector('#tutorialScreen')
 
 startButton.addEventListener('click', async () => {
   select.play()
-  menuLogo.style.top = '20%'
+  menuLogo.style.top = '13%'
   menuLogo.style.animation = 'fadeOut 2s forwards'
   startButton.style.animation = 'fadeOut 2s forwards'
   startButton.style.hover = 'none'
@@ -454,7 +453,7 @@ function generateRound2() {
   checkTouching()
 
   // Update game state
-  gameLoop()
+  requestAnimationFrame(gameLoop)
   beginGameCountdown()
   setTimeout(function () {
     gameStart = true
@@ -491,13 +490,13 @@ class BloodParticle {
     return shades[Math.floor(Math.random() * shades.length)]
   }
 
-  update() {
+  update(deltaTime) {
     this.speedX *= this.friction
     this.speedY *= this.friction
     this.speedY += this.gravity
-    this.x += this.speedX
-    this.y += this.speedY
-    this.life -= this.decay
+    this.x += this.speedX * (deltaTime * constants.SPEED)
+    this.y += this.speedY * (deltaTime * constants.SPEED)
+    this.life -= this.decay * (deltaTime * constants.SPEED)
   }
 
   draw() {
@@ -513,19 +512,22 @@ class BloodParticle {
 }
 
 // Game loop
-async function gameLoop() {
+async function gameLoop(currentTime) {
+  const deltaTime = (currentTime - lastFrameTime) / 1000; 
+  console.log(deltaTime)
+  lastFrameTime = currentTime;
   playBackgroundMusic()
 
   CANVAS_SIZE[0] = window.innerWidth
-  CANVAS_SIZE[1] = window.innerHeight - 340
+  CANVAS_SIZE[1] = window.innerHeight - (window.innerHeight * 0.23)
   canvas.width = CANVAS_SIZE[0]
   canvas.height = CANVAS_SIZE[1]
 
   // loadAnimation()
   // ctx.clearRect(0, 0, canvas.width, canvas.height)
-  adjustMovement()
+  adjustMovement(deltaTime)
   for (const particle of bloodParticles) {
-    particle.update()
+    particle.update(deltaTime)
     particle.draw()
     if (particle.life <= 0) {
       bloodParticles.pop(particle)
@@ -538,4 +540,5 @@ async function gameLoop() {
 }
 
 // Start the game
-gameLoop()
+// gameLoop()
+requestAnimationFrame(gameLoop);

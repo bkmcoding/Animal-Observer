@@ -11,10 +11,10 @@ export default class Entity {
     this.wobblePhase = Math.random() * Math.PI * 2
     this.facingRight = true
     this.lastStableX = x
+    this.dt = 0;
   }
 
   updateWobble() {
-    // Update wobble phase (creates oscillation)
     this.wobblePhase += constants.WOBBLE_SPEED
     this.wobbleOffset = Math.sin(this.wobblePhase) * constants.WOBBLE_AMOUNT
   }
@@ -25,21 +25,23 @@ export default class Entity {
     // Only flip if movement exceeds threshold
     if (Math.abs(xMovement) > constants.FLIP_THRESHOLD) {
       this.facingRight = xMovement > 0
-      this.lastStableX = this.x // Update only after significant movement
+      this.lastStableX = this.x 
     }
   }
 
-  moveTowards(CANVAS_SIZE, targetX, targetY) {
+  moveTowards(CANVAS_SIZE, targetX, targetY, deltaTime) {
+    this.dt = deltaTime
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x += constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y += constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
+    this.x += constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y += constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
     this.avoidEdges(CANVAS_SIZE)
   }
 
-  moveAwayFrom(CANVAS_SIZE, targetX, targetY) {
+  moveAwayFrom(CANVAS_SIZE, targetX, targetY, deltaTime) {
+    this.dt = deltaTime
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x -= constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y -= constants.SPEED * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
+    this.x -= constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
+    this.y -= constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
     this.avoidEdges(CANVAS_SIZE)
   }
 
@@ -47,9 +49,9 @@ export default class Entity {
     return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2)
   }
 
-  repelFrom(CANVAS_SIZE, other) {
+  repelFrom(CANVAS_SIZE, other, deltaTime) {
     if (this.distanceTo(other) < constants.REPULSION_RADIUS) {
-      this.moveAwayFrom(CANVAS_SIZE, other.x, other.y)
+      this.moveAwayFrom(CANVAS_SIZE, other.x, other.y, deltaTime)
     }
   }
 
@@ -68,14 +70,14 @@ export default class Entity {
 
   avoidEdges(CANVAS_SIZE) {
     if (this.x < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x + constants.EDGE_AVOID_RADIUS, this.y)
+      this.moveTowards(CANVAS_SIZE, this.x + constants.EDGE_AVOID_RADIUS, this.y, this.dt)
     } else if (this.x > CANVAS_SIZE[0] - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x - constants.EDGE_AVOID_RADIUS, this.y)
+      this.moveTowards(CANVAS_SIZE, this.x - constants.EDGE_AVOID_RADIUS, this.y, this.dt)
     }
     if (this.y < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x, this.y + constants.EDGE_AVOID_RADIUS)
+      this.moveTowards(CANVAS_SIZE, this.x, this.y + constants.EDGE_AVOID_RADIUS, this.dt)
     } else if (this.y > CANVAS_SIZE[1] - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x, this.y - constants.EDGE_AVOID_RADIUS)
+      this.moveTowards(CANVAS_SIZE, this.x, this.y - constants.EDGE_AVOID_RADIUS, this.dt)
     }
   }
 
