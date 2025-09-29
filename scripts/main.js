@@ -12,11 +12,9 @@ const select = new Audio('./assets/sound/soundfx/blipSelect.wav')
 select.volume = 0.5
 const explosion = new Audio('./assets/sound/soundfx/explosion.wav')
 explosion.volume = 0.7
-let CANVAS_SIZE = [1920, 1080]
+let CANVAS_SIZE = [window.innerWidth, window.innerHeight]
 let gameStart = false
 let lastFrameTime = 0
-// WINDOW_WIDTH = 1920
-// WINDOW_HEIGHT = 1080
 
 // Image cache
 const imageCache = {}
@@ -272,7 +270,7 @@ startButton.addEventListener('click', async () => {
 
 cloudButton.addEventListener('click', () => {
   select.play()
-  tutorialScreen.style.top = '20%'
+  tutorialScreen.style.top = '13%'
   tutorialScreen.style.animation = 'fadeOut 2s forwards'
   beginGameCountdown()
   setTimeout(function () {
@@ -519,7 +517,7 @@ async function gameLoop(currentTime) {
   playBackgroundMusic()
 
   CANVAS_SIZE[0] = window.innerWidth
-  CANVAS_SIZE[1] = window.innerHeight - (window.innerHeight * 0.23)
+  CANVAS_SIZE[1] = window.innerHeight - (window.innerHeight * 0.4)
   canvas.width = CANVAS_SIZE[0]
   canvas.height = CANVAS_SIZE[1]
 
