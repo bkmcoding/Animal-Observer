@@ -5,7 +5,8 @@ export function getEcosystemForRound(round) {
     throw new Error('Round numbers must be positive integers.')
   }
 
-  return round % 2 === 1 ? constants.ECOSYSTEMS.field : constants.ECOSYSTEMS.sea
+  const ecosystemId = constants.ECOSYSTEM_CYCLE[(round - 1) % constants.ECOSYSTEM_CYCLE.length]
+  return constants.ECOSYSTEMS[ecosystemId]
 }
 
 export function getSpeciesCount(ecosystem, round) {

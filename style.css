@@ -13,21 +13,38 @@
 body {
   background-color: rgb(34, 31, 31);
   color: #1f1b18;
-  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+button,
+input {
+  touch-action: manipulation;
 }
 
 canvas {
   display: block;
-  margin-top: 40vh;
+  position: absolute;
+  left: 0;
+  top: 40%;
+  width: 100%;
+  height: 60%;
+  touch-action: none;
 }
 
 #sky {
-  position: relative;
+  position: fixed;
+  inset: 0;
   background-color: #49abd1;
   display: block;
-  width: 100vw;
-  height: 100vh;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -36,6 +53,7 @@ canvas {
   position: absolute;
   inset: 0;
   z-index: 1000;
+  pointer-events: none;
   animation: slideDown 1.2s ease-in-out forwards;
   animation-delay: 1.8s;
 }
@@ -45,8 +63,8 @@ canvas {
   top: -262%;
   left: 50%;
   translate: calc(-50% + -1px);
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background-image: url('./assets/images/UI/landscapeDown.png');
   background-size: cover;
   animation: slideUp2 4s ease-in forwards;
@@ -58,8 +76,8 @@ canvas {
   top: 200%;
   left: 50%;
   translate: calc(-50% + -1px) -50%;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background-image: url('./assets/images/UI/LandscapeUP.png');
   background-size: cover;
   animation: slideUp1 4s ease-in forwards;
@@ -74,7 +92,8 @@ canvas {
   width: min(960px, 92vw);
   height: auto;
   z-index: 100;
-  animation: dropAndBounce 2s ease-out forwards;
+  pointer-events: none;
+  animation: dropIn 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: 3.25s;
 }
 
@@ -160,12 +179,13 @@ canvas {
 
 #monster {
   position: absolute;
-  top: 177px;
+  top: clamp(1rem, 12%, 6rem);
   left: -500px;
   z-index: 0;
-  width: 100px;
+  width: clamp(72px, 10vw, 120px);
   height: auto;
-  opacity: 0;
+  opacity: 0.75;
+  visibility: hidden;
   pointer-events: none;
 }
 
@@ -191,6 +211,7 @@ canvas {
 
 #scorePanel {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.8rem;
@@ -213,15 +234,22 @@ canvas {
   left: 50%;
   translate: -50% -50%;
   z-index: 160;
-  width: min(720px, 92vw, 67.5vh);
+  width: min(720px, 92vw);
+  max-width: 67.5vh;
   aspect-ratio: 3 / 4;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 7%;
+  padding: clamp(1rem, 6%, 3rem);
   animation: clipboardIn 350ms ease-out;
+}
+
+@supports (height: 100dvh) {
+  #clipboardContainer {
+    max-width: 67.5dvh;
+  }
 }
 
 #clipboardContainer.guess-mode {
@@ -344,36 +372,25 @@ canvas {
   }
 }
 
-@keyframes dropAndBounce {
+@keyframes dropIn {
   0% {
-    top: -200vh;
+    top: -200%;
     transform: scale(1);
-  }
-  60% {
-    top: 10%;
-    transform: scale(1);
+    opacity: 0;
   }
   70% {
-    top: 16%;
-    transform: scale(1.1, 0.9);
-  }
-  80% {
-    top: 12%;
-    transform: scale(0.95, 1.05);
-  }
-  90% {
-    top: 14%;
-    transform: scale(1.02, 0.98);
+    opacity: 1;
   }
   100% {
     top: 13%;
     transform: scale(1);
+    opacity: 1;
   }
 }
 
 @keyframes slideUp1 {
   0% {
-    top: 300vh;
+    top: 300%;
   }
   60% {
     top: 90%;
@@ -394,7 +411,7 @@ canvas {
 
 @keyframes slideUp2 {
   0% {
-    top: calc(200vh - 112%);
+    top: calc(200% - 112%);
   }
   60% {
     top: calc(82% - 112%);
@@ -439,13 +456,99 @@ canvas {
     bottom: 1rem;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
+  }
+
+  #gameCountdown {
+    min-width: 68px;
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  #scorePanel {
+    width: min(92vw, 360px);
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+
+  #startGameButton {
+    top: 72%;
+  }
+
+  #tutorialScreen {
+    display: grid;
+    justify-items: center;
+    width: 92vw;
+  }
+
+  #tutorialText {
+    position: relative;
+    top: auto;
+    left: auto;
+    translate: none;
+    width: min(520px, 92%);
+    margin: 1rem 0 4.75rem;
+  }
+
+  #cloudButton {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    translate: none;
+    width: min(224px, 82vw);
+    margin-top: 0.5rem;
+  }
+
+  #clipboardContainer {
+    width: 94vw;
+    padding: 1rem;
   }
 
   .result-row {
     grid-template-columns: 1fr 1fr;
   }
 
+  .guess-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
   .clipboard-page {
     padding: 0.9rem;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  #hud {
+    top: 0.5rem;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  #gameCountdown {
+    min-width: 56px;
+    font-size: clamp(1.5rem, 4vh, 2.5rem);
+  }
+
+  #scorePanel {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  #tutorialText {
+    width: min(520px, 46vw);
+    padding: 0.75rem;
+  }
+
+  #cloudButton {
+    height: 52px;
+    font-size: 1.15rem;
+  }
+
+  #clipboardContainer {
+    width: 94vw;
+  }
+
+  .clipboard-page {
+    max-height: 92%;
   }
 }

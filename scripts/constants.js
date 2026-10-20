@@ -75,3 +75,5 @@ export const ECOSYSTEMS = {
     maxCount: 20,
   },
 }
+
+export const ECOSYSTEM_CYCLE = ['field', 'sea']

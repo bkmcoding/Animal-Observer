@@ -24,6 +24,8 @@ Each round is worth **300 base points**, split across the animals in the active 
 
 Read the full rules, progression table, and scoring examples in [docs/GAMEPLAY.md](docs/GAMEPLAY.md).
 
+For future characters, ecosystems, upgrades, and artistic expansion, see [docs/EXPANSION.md](docs/EXPANSION.md).
+
 ## Authors
 
 - [@bkmcoding](https://github.com/bkmcoding)

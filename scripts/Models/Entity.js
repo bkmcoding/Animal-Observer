@@ -60,8 +60,10 @@ export default class Entity {
   }
 
   clampToBounds(canvasSize) {
-    this.x = Math.min(Math.max(this.x, constants.EDGE_AVOID_RADIUS), canvasSize[0] - constants.EDGE_AVOID_RADIUS)
-    this.y = Math.min(Math.max(this.y, constants.EDGE_AVOID_RADIUS), canvasSize[1] - constants.EDGE_AVOID_RADIUS)
+    const maxX = Math.max(constants.EDGE_AVOID_RADIUS, canvasSize[0] - constants.EDGE_AVOID_RADIUS)
+    const maxY = Math.max(constants.EDGE_AVOID_RADIUS, canvasSize[1] - constants.EDGE_AVOID_RADIUS)
+    this.x = Math.min(Math.max(this.x, constants.EDGE_AVOID_RADIUS), maxX)
+    this.y = Math.min(Math.max(this.y, constants.EDGE_AVOID_RADIUS), maxY)
   }
 
   getRandomUniform(min, max) {

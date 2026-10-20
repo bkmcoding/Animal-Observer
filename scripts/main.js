@@ -109,10 +109,14 @@ function startBackgroundMusic() {
 }
 
 function resizeCanvas() {
-  CANVAS_SIZE[0] = window.innerWidth
-  CANVAS_SIZE[1] = Math.max(240, window.innerHeight - Math.round(window.innerHeight * 0.4))
-  canvas.width = CANVAS_SIZE[0]
-  canvas.height = CANVAS_SIZE[1]
+  const canvasBounds = canvas.getBoundingClientRect()
+  CANVAS_SIZE[0] = Math.max(1, canvasBounds.width)
+  CANVAS_SIZE[1] = Math.max(1, canvasBounds.height)
+
+  const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1)
+  canvas.width = Math.round(CANVAS_SIZE[0] * devicePixelRatio)
+  canvas.height = Math.round(CANVAS_SIZE[1] * devicePixelRatio)
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
 
   for (const entity of entities) {
     entity.clampToBounds(CANVAS_SIZE)
@@ -121,9 +125,12 @@ function resizeCanvas() {
 
 function randomPositionWithinBounds() {
   const margin = constants.EDGE_AVOID_RADIUS
+  const maxX = Math.max(margin, CANVAS_SIZE[0] - margin)
+  const maxY = Math.max(margin, CANVAS_SIZE[1] - margin)
+
   return {
-    x: margin + Math.random() * Math.max(0, CANVAS_SIZE[0] - margin * 2),
-    y: margin + Math.random() * Math.max(0, CANVAS_SIZE[1] - margin * 2),
+    x: margin + Math.random() * Math.max(0, maxX - margin),
+    y: margin + Math.random() * Math.max(0, maxY - margin),
   }
 }
 
@@ -207,7 +214,7 @@ function startRound(round) {
   clipboard.hidden = true
   guessPage.hidden = true
   resultPage.hidden = true
-  monster.style.opacity = '0.75'
+  monster.style.visibility = 'visible'
   updateHud()
   resizeCanvas()
   spawnEntities()
@@ -261,7 +268,7 @@ function endObservation() {
   clearTimers()
   stopGameLoop()
   countdownDisplay.textContent = '0'
-  monster.style.opacity = '0'
+  monster.style.visibility = 'hidden'
   renderGuessForm()
   playSound(pageFlipSound, 0.6)
 }
@@ -536,7 +543,9 @@ class BloodParticle {
 function updateMonster(elapsed) {
   const roundProgress = Math.min(1, elapsed / constants.ROUND_DURATION_MS)
   const sweepProgress = roundProgress >= 1 ? 1 : (roundProgress * state.monsterSweeps) % 1
-  monster.style.left = `${-500 + window.innerWidth * sweepProgress}px`
+  const monsterWidth = monster.offsetWidth
+  const travelDistance = window.innerWidth + monsterWidth
+  monster.style.left = `${-monsterWidth + travelDistance * sweepProgress}px`
 }
 
 function gameLoop(currentTime) {
@@ -566,7 +575,7 @@ startButton.addEventListener('click', () => {
     menuLogo.style.display = 'none'
     startButton.style.display = 'none'
     tutorialScreen.hidden = false
-    tutorialScreen.style.animation = 'dropAndBounce 1s ease-out forwards'
+    tutorialScreen.style.animation = 'dropIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards'
   }, 1000)
 })
 
