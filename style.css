@@ -10,17 +10,18 @@
   display: none !important;
 }
 
+html,
+body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
 body {
   background-color: rgb(34, 31, 31);
   color: #1f1b18;
   position: fixed;
   inset: 0;
-}
-
-html,
-body {
-  height: 100%;
-  overscroll-behavior: none;
+  overflow: hidden;
 }
 
 button,
@@ -43,8 +44,6 @@ canvas {
   inset: 0;
   background-color: #49abd1;
   display: block;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
 }
 
@@ -84,22 +83,29 @@ canvas {
   animation-delay: 3s;
 }
 
+#layer3Background {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
 #menu {
   position: absolute;
-  top: -200%;
+  top: 8%;
   left: 51%;
   translate: -50% 0%;
-  width: min(960px, 92vw);
+  width: min(960px, 92vw, 128vh);
   height: auto;
   z-index: 100;
   pointer-events: none;
-  animation: dropIn 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: dropAndBounce 2s ease-out forwards;
   animation-delay: 3.25s;
 }
 
 #startGameButton {
   position: absolute;
-  top: 75%;
+  top: 82%;
   left: 50%;
   translate: -50% 0%;
   z-index: 110;
@@ -125,51 +131,38 @@ canvas {
   left: 50%;
   translate: -50% 0%;
   z-index: 150;
-  width: min(840px, 92vw);
-  text-align: center;
+  width: min(960px, 92vw, 133.33vh);
+  aspect-ratio: 4 / 3;
+  container-type: inline-size;
 }
 
-#tutorialScreen > img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-#tutorialText {
+#tutorialImage {
   position: absolute;
-  top: 20%;
-  left: 50%;
-  translate: -50% 0%;
-  width: min(520px, 82%);
-  color: #1f1b18;
-  background: rgba(235, 238, 242, 0.88);
-  border: 3px solid #1f1b18;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  text-align: left;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-#tutorialText h2 {
-  margin-bottom: 0.5rem;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-}
-
-#tutorialText p {
-  font-size: clamp(1rem, 1.6vw, 1.25rem);
-  line-height: 1.4;
+#murderGif {
+  position: absolute;
+  top: 33.06%;
+  left: 63.33%;
+  width: 17.7%;
+  height: auto;
 }
 
 #cloudButton {
   position: absolute;
-  bottom: 12%;
-  left: 50%;
-  translate: -50% 0%;
-  width: min(224px, 60vw);
-  height: 62px;
-  border: 3px solid #1f1b18;
-  border-radius: 4px;
-  background: white;
-  font-size: 1.5rem;
+  top: 62.9%;
+  left: 37.5%;
+  width: 23.3%;
+  height: 11.4%;
+  background-color: white;
+  text-align: center;
+  border: black 3px solid;
+  border-radius: 3px;
+  font-size: clamp(1.25rem, 4.5cqw, 2.25rem);
   cursor: pointer;
 }
 
@@ -215,9 +208,9 @@ canvas {
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.8rem;
-  border: 3px solid rgba(31, 27, 24, 0.75);
-  border-radius: 6px;
-  background: rgba(235, 238, 242, 0.86);
+  border: 3px solid #1f1b18;
+  border-radius: 3px;
+  background: white;
   font-size: clamp(0.9rem, 1.5vw, 1.2rem);
   white-space: nowrap;
 }
@@ -234,108 +227,144 @@ canvas {
   left: 50%;
   translate: -50% -50%;
   z-index: 160;
-  width: min(720px, 92vw);
-  max-width: 67.5vh;
+  width: min(720px, 92vw, 67.5vh);
   aspect-ratio: 3 / 4;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 6%, 3rem);
+  container-type: inline-size;
   animation: clipboardIn 350ms ease-out;
 }
 
-@supports (height: 100dvh) {
-  #clipboardContainer {
-    max-width: 67.5dvh;
-  }
-}
-
-#clipboardContainer.guess-mode {
-  background-image: url('./assets/images/UI/R1clipboard.png');
-}
-
-#clipboardContainer.result-mode {
-  background-image: url('./assets/images/UI/R2clipboard.png');
-}
-
-.clipboard-page {
+#clipboardImage {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-  padding: clamp(1rem, 2vw, 1.75rem);
-  border: 3px solid #1f1b18;
-  border-radius: 6px;
-  background: rgba(235, 238, 242, 0.94);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  height: 100%;
+  object-fit: fill;
+  z-index: 1;
 }
 
-.clipboard-page h2 {
-  margin-bottom: 0.35rem;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+#guessPage,
+#resultPage {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 
-.clipboard-page p {
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-}
-
-#clipboardSubtitle,
-#resultSummary {
-  margin-bottom: 1rem;
+#clipboardTitle {
+  position: absolute;
+  top: 5.7%;
+  left: 48%;
+  width: 42%;
+  color: #1f1b18;
+  font-size: clamp(1.25rem, 4.5cqw, 2.25rem);
   font-weight: 700;
+  line-height: 1.1;
+}
+
+#clipboardSubtitle {
+  position: absolute;
+  top: 10.2%;
+  left: 48%;
+  width: 42%;
+  color: #1f1b18;
+  font-size: clamp(1rem, 3.5cqw, 1.5rem);
 }
 
 #guessFields {
+  position: absolute;
+  top: 19.8%;
+  left: 48%;
+  width: 42%;
+  height: 32%;
   display: grid;
-  gap: 0.75rem;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  row-gap: 4%;
 }
 
 .guess-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px);
+  grid-template-columns: 55% 45%;
   align-items: center;
-  gap: 0.75rem;
-  font-size: clamp(1.05rem, 1.8vw, 1.4rem);
+  gap: 2cqw;
+  color: #1f1b18;
+  font-size: clamp(1rem, 3.5cqw, 1.4rem);
 }
 
 .guess-input {
   width: 100%;
-  padding: 0.6rem 0.7rem;
-  border: 2px solid #6f6259;
-  border-radius: 3px;
-  background: white;
+  padding: 0.6cqw 0.4cqw;
+  border: 0;
+  border-bottom: 2px solid #1f1b18;
+  border-radius: 2px;
+  background: rgba(235, 238, 242, 0.65);
+  color: #1f1b18;
   font: inherit;
 }
 
 .guess-input.invalid {
-  border-color: #a3271d;
-  background: #fff2f0;
+  border-bottom-color: #a3271d;
+  background: rgba(255, 242, 240, 0.8);
 }
 
 #guessError {
-  min-height: 1.5rem;
-  margin-top: 0.5rem;
+  position: absolute;
+  top: 68%;
+  left: 26.7%;
+  width: 44%;
   color: #a3271d;
-  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+  font-size: clamp(0.9rem, 3cqw, 1.1rem);
+  text-align: center;
+}
+
+#submitGuessButton,
+#nextRoundButton {
+  position: absolute;
+  top: 78.4%;
+  left: 26.7%;
+  width: 44%;
+  height: 8.5%;
+  background: white;
+  border: 3px solid black;
+  border-radius: 3px;
+  color: #1f1b18;
+  font-size: clamp(1.25rem, 4.5cqw, 2.25rem);
+  cursor: pointer;
+}
+
+#submitGuessButton:hover,
+#nextRoundButton:hover {
+  filter: brightness(0.77);
+}
+
+#resultSummary {
+  position: absolute;
+  top: 10.4%;
+  left: 11.1%;
+  width: 78%;
+  color: #1f1b18;
+  font-size: clamp(1.25rem, 4.5cqw, 2.25rem);
+  font-weight: 700;
 }
 
 #resultRows {
+  position: absolute;
+  top: 20%;
+  left: 11.1%;
+  width: 78%;
   display: grid;
-  gap: 0.65rem;
-  margin-top: 0.75rem;
+  row-gap: 4%;
+  color: #1f1b18;
 }
 
 .result-row {
   display: grid;
   grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
-  gap: 0.35rem;
   align-items: center;
-  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+  gap: 1.5cqw;
+  font-size: clamp(1rem, 3.5cqw, 1.35rem);
 }
 
 .result-row strong {
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-size: clamp(1.05rem, 3.8cqw, 1.45rem);
 }
 
 .result-points {
@@ -343,24 +372,13 @@ canvas {
 }
 
 #scoreSummary {
-  margin-top: 1rem;
+  position: absolute;
+  top: 70%;
+  left: 11.1%;
+  width: 78%;
+  color: #1f1b18;
+  font-size: clamp(1rem, 3.5cqw, 1.4rem);
   font-weight: 700;
-}
-
-.clipboard-button {
-  display: block;
-  width: min(260px, 100%);
-  margin: 1.25rem auto 0;
-  padding: 0.75rem 1rem;
-  border: 3px solid #1f1b18;
-  border-radius: 4px;
-  background: white;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  cursor: pointer;
-}
-
-.clipboard-button:hover {
-  filter: brightness(0.77);
 }
 
 @keyframes slideDown {
@@ -372,19 +390,30 @@ canvas {
   }
 }
 
-@keyframes dropIn {
+@keyframes dropAndBounce {
   0% {
-    top: -200%;
+    top: -200vh;
     transform: scale(1);
-    opacity: 0;
+  }
+  60% {
+    top: 10%;
+    transform: scale(1);
   }
   70% {
-    opacity: 1;
+    top: 16%;
+    transform: scale(1.1, 0.9);
+  }
+  80% {
+    top: 12%;
+    transform: scale(0.95, 1.05);
+  }
+  90% {
+    top: 14%;
+    transform: scale(1.02, 0.98);
   }
   100% {
     top: 13%;
     transform: scale(1);
-    opacity: 1;
   }
 }
 
@@ -474,46 +503,12 @@ canvas {
     top: 72%;
   }
 
-  #tutorialScreen {
-    display: grid;
-    justify-items: center;
-    width: 92vw;
-  }
-
-  #tutorialText {
-    position: relative;
-    top: auto;
-    left: auto;
-    translate: none;
-    width: min(520px, 92%);
-    margin: 1rem 0 4.75rem;
-  }
-
-  #cloudButton {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    translate: none;
-    width: min(224px, 82vw);
-    margin-top: 0.5rem;
-  }
-
-  #clipboardContainer {
-    width: 94vw;
-    padding: 1rem;
+  #resultRows {
+    row-gap: 3%;
   }
 
   .result-row {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .guess-row {
-    grid-template-columns: 1fr;
-    gap: 0.35rem;
-  }
-
-  .clipboard-page {
-    padding: 0.9rem;
   }
 }
 
@@ -534,21 +529,19 @@ canvas {
     font-size: 0.8rem;
   }
 
-  #tutorialText {
-    width: min(520px, 46vw);
-    padding: 0.75rem;
+  #menu {
+    width: min(420px, 55vw);
   }
 
-  #cloudButton {
-    height: 52px;
-    font-size: 1.15rem;
+  #startGameButton {
+    top: 78%;
   }
 
-  #clipboardContainer {
-    width: 94vw;
+  #startGameImage {
+    width: min(220px, 36vw);
   }
 
-  .clipboard-page {
-    max-height: 92%;
+  #tutorialScreen {
+    top: 5%;
   }
 }

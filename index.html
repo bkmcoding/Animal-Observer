@@ -2,19 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Animal Observer</title>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="/scripts/main.js"></script>
   </head>
   <body>
     <div id="loadingScreen"></div>
+
     <img id="menu" src="./assets/images/UI/TitleRev2.png" alt="Animal Observer" />
 
     <div id="sky">
       <div id="layer1Background"></div>
       <div id="layer3Background"></div>
       <img src="./assets/images/UI/monster.png" id="monster" alt="" />
+
       <div id="layer2Background">
         <canvas id="gameCanvas" aria-label="Animal observation area"></canvas>
 
@@ -23,12 +25,8 @@
         </button>
 
         <div id="tutorialScreen" hidden>
-          <img src="./assets/images/UI/tutorial.sprite.png" alt="Tutorial illustration" />
-          <div id="tutorialText">
-            <h2>How to play</h2>
-            <p>Watch the animals for 50 seconds and count each capture.</p>
-            <p>Close guesses still earn points, and an exact report earns a perfect bonus.</p>
-          </div>
+          <img id="tutorialImage" src="./assets/images/UI/tutorial.sprite.png" alt="Tutorial illustration" />
+          <img id="murderGif" src="./assets/images/UI/murder.gif" alt="Animated tutorial illustration" />
           <button id="cloudButton" type="button">Continue</button>
         </div>
 
@@ -42,24 +40,21 @@
         </div>
 
         <section id="clipboardContainer" hidden>
-          <form id="guessPage" class="clipboard-page" novalidate>
-            <h2 id="clipboardTitle">Observation report</h2>
-            <p id="clipboardSubtitle">Round 1 — Field</p>
+          <img id="clipboardImage" src="./assets/images/UI/R1clipboard.png" alt="" draggable="false" />
+
+          <form id="guessPage" novalidate>
+            <div id="clipboardTitle">Observation report</div>
+            <div id="clipboardSubtitle">Round 1 — Field</div>
             <div id="guessFields"></div>
             <p id="guessError" role="alert"></p>
-            <button id="submitGuessButton" class="clipboard-button" type="submit">
-              Submit counts
-            </button>
+            <button id="submitGuessButton" type="submit">Proceed</button>
           </form>
 
-          <section id="resultPage" class="clipboard-page" hidden>
-            <h2>Round results</h2>
-            <p id="resultSummary">Round results</p>
+          <section id="resultPage" hidden>
+            <div id="resultSummary">Round results</div>
             <div id="resultRows"></div>
-            <p id="scoreSummary"></p>
-            <button id="nextRoundButton" class="clipboard-button" type="button">
-              Next round
-            </button>
+            <div id="scoreSummary"></div>
+            <button id="nextRoundButton" type="button">Next round</button>
           </section>
         </section>
       </div>

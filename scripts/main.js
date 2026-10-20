@@ -21,6 +21,7 @@ const roundLabel = document.querySelector('#roundLabel')
 const ecosystemLabel = document.querySelector('#ecosystemLabel')
 const scoreLabel = document.querySelector('#scoreLabel')
 const clipboard = document.querySelector('#clipboardContainer')
+const clipboardImage = document.querySelector('#clipboardImage')
 const guessPage = document.querySelector('#guessPage')
 const resultPage = document.querySelector('#resultPage')
 const clipboardTitle = document.querySelector('#clipboardTitle')
@@ -275,8 +276,10 @@ function endObservation() {
 
 function showClipboard(mode) {
   clipboard.hidden = false
-  clipboard.classList.toggle('guess-mode', mode === 'guess')
-  clipboard.classList.toggle('result-mode', mode === 'result')
+  clipboardImage.src =
+    mode === 'result'
+      ? './assets/images/UI/R2clipboard.png'
+      : './assets/images/UI/R1clipboard.png'
 }
 
 function createGuessRow(type) {
