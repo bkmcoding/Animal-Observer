@@ -1,17 +1,18 @@
 import * as constants from '../constants.js'
 
 export default class Entity {
-  constructor(x, y, type) {
+  constructor(x, y, type, speedMultiplier = 1) {
     this.x = x
     this.y = y
     this.type = type
     this.size = constants.ICON_WIDTH
+    this.speedMultiplier = speedMultiplier
     this.wobbleOffset = 0
     this.wobbleDirection = 1
     this.wobblePhase = Math.random() * Math.PI * 2
     this.facingRight = true
     this.lastStableX = x
-    this.dt = 0;
+    this.dt = 0
   }
 
   updateWobble() {
@@ -22,63 +23,45 @@ export default class Entity {
   updateDirection() {
     const xMovement = this.x - this.lastStableX
 
-    // Only flip if movement exceeds threshold
     if (Math.abs(xMovement) > constants.FLIP_THRESHOLD) {
       this.facingRight = xMovement > 0
-      this.lastStableX = this.x 
+      this.lastStableX = this.x
     }
   }
 
-  moveTowards(CANVAS_SIZE, targetX, targetY, deltaTime) {
+  moveTowards(canvasSize, targetX, targetY, deltaTime) {
     this.dt = deltaTime
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x += constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y += constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
-    this.avoidEdges(CANVAS_SIZE)
+    const speed = constants.SPEED * this.speedMultiplier * this.getRandomUniform(0.8, 1.2)
+
+    this.x += speed * deltaTime * Math.cos(angle)
+    this.y += speed * deltaTime * Math.sin(angle)
+    this.clampToBounds(canvasSize)
   }
 
-  moveAwayFrom(CANVAS_SIZE, targetX, targetY, deltaTime) {
+  moveAwayFrom(canvasSize, targetX, targetY, deltaTime) {
     this.dt = deltaTime
     const angle = Math.atan2(targetY - this.y, targetX - this.x)
-    this.x -= constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.cos(angle)
-    this.y -= constants.SPEED * this.dt * (Math.random() + this.getRandomUniform(-0.2, 0.2)) * Math.sin(angle)
-    this.avoidEdges(CANVAS_SIZE)
+    const speed = constants.SPEED * this.speedMultiplier * this.getRandomUniform(0.8, 1.2)
+
+    this.x -= speed * deltaTime * Math.cos(angle)
+    this.y -= speed * deltaTime * Math.sin(angle)
+    this.clampToBounds(canvasSize)
   }
 
   distanceTo(other) {
-    return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2)
+    return Math.hypot(this.x - other.x, this.y - other.y)
   }
 
-  repelFrom(CANVAS_SIZE, other, deltaTime) {
+  repelFrom(canvasSize, other, deltaTime) {
     if (this.distanceTo(other) < constants.REPULSION_RADIUS) {
-      this.moveAwayFrom(CANVAS_SIZE, other.x, other.y, deltaTime)
+      this.moveAwayFrom(canvasSize, other.x, other.y, deltaTime)
     }
   }
 
-  draw() {
-    ctx.save()
-    ctx.beginPath()
-    ctx.arc(this.x, this.y, constants.ENTITY_RADIUS, 0, Math.PI * 2)
-    ctx.fillStyle = colors[this.type]
-    ctx.fill()
-    ctx.closePath()
-
-    // If images were loaded, we would use this:
-    // ctx.drawImage(this.img, this.x - ICON_WIDTH / 2, this.y - ICON_HEIGHT / 2, ICON_WIDTH, ICON_HEIGHT);
-    ctx.restore()
-  }
-
-  avoidEdges(CANVAS_SIZE) {
-    if (this.x < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x + constants.EDGE_AVOID_RADIUS, this.y, this.dt)
-    } else if (this.x > CANVAS_SIZE[0] - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x - constants.EDGE_AVOID_RADIUS, this.y, this.dt)
-    }
-    if (this.y < constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x, this.y + constants.EDGE_AVOID_RADIUS, this.dt)
-    } else if (this.y > CANVAS_SIZE[1] - constants.EDGE_AVOID_RADIUS) {
-      this.moveTowards(CANVAS_SIZE, this.x, this.y - constants.EDGE_AVOID_RADIUS, this.dt)
-    }
+  clampToBounds(canvasSize) {
+    this.x = Math.min(Math.max(this.x, constants.EDGE_AVOID_RADIUS), canvasSize[0] - constants.EDGE_AVOID_RADIUS)
+    this.y = Math.min(Math.max(this.y, constants.EDGE_AVOID_RADIUS), canvasSize[1] - constants.EDGE_AVOID_RADIUS)
   }
 
   getRandomUniform(min, max) {

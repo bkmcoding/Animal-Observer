@@ -6,32 +6,35 @@
   margin: 0;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   background-color: rgb(34, 31, 31);
+  color: #1f1b18;
   overflow: hidden;
 }
 
 canvas {
-  /* background: #eee; */
   display: block;
-  margin-top: 340px;
-  /* border: 2px solid #333; */
+  margin-top: 40vh;
 }
 
 #sky {
+  position: relative;
   background-color: #49abd1;
   display: block;
   width: 100vw;
   height: 100vh;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 #loadingScreen {
   background: rgb(34, 31, 31);
   position: absolute;
-  width: 100vw;
-  height: 100vh;
-  margin: 0 auto;
+  inset: 0;
   z-index: 1000;
   animation: slideDown 1.2s ease-in-out forwards;
   animation-delay: 1.8s;
@@ -68,116 +71,11 @@ canvas {
   top: -200%;
   left: 51%;
   translate: -50% 0%;
-  width: 960px;
-  height: 525px;
+  width: min(960px, 92vw);
+  height: auto;
   z-index: 100;
   animation: dropAndBounce 2s ease-out forwards;
   animation-delay: 3.25s;
-}
-
-#tutorialScreen {
-  display: none;
-  position: absolute;
-  top: -35%;
-  left: 50%;
-  translate: -50% 0%;
-  /* animation: dropAndBounce 2s ease-out forwards; */
-  animation-delay: 2.25s;
-}
-
-#monster {
-  position: absolute;
-  top: 177px;
-  left: -10%;
-  z-index: 0;
-  translate: 0% 0%;
-  width: 100px;
-  height: auto;
-}
-
-#cloudButton {
-  background-color: white;
-  text-align: center;
-  border: black 3px solid;
-  border-radius: 3px;
-  width: 224px;
-  height: 82px;
-  font-size: 2.25em;
-}
-
-#cloudButton:hover {
-  filter: brightness(0.77);
-}
-
-#clipboardContainer {
-  display: relative;
-  position: absolute;
-  top: 200%;
-  left: 50%;
-  translate: -50% -50%;
-  transition: slideUp1 2s ease-in forwards;
-}
-
-.clipboardInput {
-  background-color: #ebeef2;
-  width: 100%;
-  font-size: 1.5em;
-  padding: 12px 20px;
-  border: none;
-  margin: 8px 0;
-  display: inline-block;
-  box-sizing: border-box;
-}
-
-.clipboardInput:focus {
-  outline: none;
-}
-
-/* .clipboardCheckbox {
-  border: none;
-  outline: none;
-  width: 35px;
-  height: 35px;
-} */
-
-.clipboardCheckbox {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-}
-
-.clipboardCheckbox:checked::after {
-  content: '✓';
-  color: black;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 32px;
-}
-
-.clipboardButton {
-  background-color: none;
-  text-align: center;
-  border: none;
-  width: 234px;
-  height: 91px;
-  font-size: 2.25em;
-}
-
-#clipboardButton {
-  background-color: none;
-  text-align: center;
-  border: none;
-  width: 316px;
-  height: 82px;
-  font-size: 2.25em;
 }
 
 #startGameButton {
@@ -185,67 +83,256 @@ canvas {
   top: 75%;
   left: 50%;
   translate: -50% 0%;
+  z-index: 110;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
 }
 
 #startGameButton:hover {
   filter: brightness(0.77);
 }
 
-#settingsButton {
-  position: absolute;
-  width: 110px;
-  height: 110px;
-  top: 0%;
-  left: calc(93%);
-  z-index: 1000;
-  /* translate: -50% 0%; */
+#startGameImage {
+  display: block;
+  width: min(350px, 70vw);
+  height: auto;
 }
 
-#settingsButton:hover {
+#tutorialScreen {
+  position: absolute;
+  top: 13%;
+  left: 50%;
+  translate: -50% 0%;
+  z-index: 150;
+  width: min(840px, 92vw);
+  text-align: center;
+}
+
+#tutorialScreen > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#tutorialText {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  translate: -50% 0%;
+  width: min(520px, 82%);
+  color: #1f1b18;
+  background: rgba(235, 238, 242, 0.88);
+  border: 3px solid #1f1b18;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  text-align: left;
+}
+
+#tutorialText h2 {
+  margin-bottom: 0.5rem;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+#tutorialText p {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 1.4;
+}
+
+#cloudButton {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  translate: -50% 0%;
+  width: min(224px, 60vw);
+  height: 62px;
+  border: 3px solid #1f1b18;
+  border-radius: 4px;
+  background: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+#cloudButton:hover {
   filter: brightness(0.77);
 }
 
-#gameCountdown {
+#monster {
   position: absolute;
-  top: 0%;
-  left: 50%;
-  translate: -50% 0%;
+  top: 177px;
+  left: -500px;
+  z-index: 0;
   width: 100px;
-  height: 10px;
-  font-size: 5.25em;
+  height: auto;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.loading-screen {
+#hud {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  z-index: 100;
-}
-
-.game-logo {
-  position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  width: 200px; /* Adjust based on your logo size */
-  height: auto;
-  z-index: 101;
+  translate: -50% 0%;
+  z-index: 140;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  pointer-events: none;
 }
 
-.blur {
-  filter: blur(5px);
-  transition: filter 1s ease-in-out;
+#gameCountdown {
+  min-width: 84px;
+  color: white;
+  font-size: clamp(2.5rem, 5vw, 5.25rem);
+  text-align: center;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
 }
 
-@keyframes filter {
-  0% {
-    filter: blur(0);
-  }
-  100% {
-    filter: blur(5px);
-  }
+#scorePanel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.8rem;
+  border: 3px solid rgba(31, 27, 24, 0.75);
+  border-radius: 6px;
+  background: rgba(235, 238, 242, 0.86);
+  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  white-space: nowrap;
+}
+
+#scorePanel span + span::before {
+  content: '·';
+  margin-right: 0.75rem;
+  color: rgba(31, 27, 24, 0.45);
+}
+
+#clipboardContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  z-index: 160;
+  width: min(720px, 92vw, 67.5vh);
+  aspect-ratio: 3 / 4;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7%;
+  animation: clipboardIn 350ms ease-out;
+}
+
+#clipboardContainer.guess-mode {
+  background-image: url('./assets/images/UI/R1clipboard.png');
+}
+
+#clipboardContainer.result-mode {
+  background-image: url('./assets/images/UI/R2clipboard.png');
+}
+
+.clipboard-page {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 3px solid #1f1b18;
+  border-radius: 6px;
+  background: rgba(235, 238, 242, 0.94);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.clipboard-page h2 {
+  margin-bottom: 0.35rem;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.clipboard-page p {
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
+}
+
+#clipboardSubtitle,
+#resultSummary {
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+#guessFields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.guess-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px);
+  align-items: center;
+  gap: 0.75rem;
+  font-size: clamp(1.05rem, 1.8vw, 1.4rem);
+}
+
+.guess-input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 2px solid #6f6259;
+  border-radius: 3px;
+  background: white;
+  font: inherit;
+}
+
+.guess-input.invalid {
+  border-color: #a3271d;
+  background: #fff2f0;
+}
+
+#guessError {
+  min-height: 1.5rem;
+  margin-top: 0.5rem;
+  color: #a3271d;
+  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+}
+
+#resultRows {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: center;
+  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+}
+
+.result-row strong {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+}
+
+.result-points {
+  font-weight: 700;
+}
+
+#scoreSummary {
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.clipboard-button {
+  display: block;
+  width: min(260px, 100%);
+  margin: 1.25rem auto 0;
+  padding: 0.75rem 1rem;
+  border: 3px solid #1f1b18;
+  border-radius: 4px;
+  background: white;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  cursor: pointer;
+}
+
+.clipboard-button:hover {
+  filter: brightness(0.77);
 }
 
 @keyframes slideDown {
@@ -332,5 +419,33 @@ canvas {
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes clipboardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  #hud {
+    top: auto;
+    bottom: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .result-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .clipboard-page {
+    padding: 0.9rem;
   }
 }

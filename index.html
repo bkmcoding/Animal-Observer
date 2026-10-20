@@ -2,98 +2,66 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Animal Observer</title>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="/scripts/main.js"></script>
   </head>
   <body>
-    <!-- <audio id="gameMusic" src="assets\sound\feedthemachine.mp3"></audio> -->
     <div id="loadingScreen"></div>
-    <img id="menu" src="./assets/images/UI/TitleRev2.png" />
+    <img id="menu" src="./assets/images/UI/TitleRev2.png" alt="Animal Observer" />
+
     <div id="sky">
       <div id="layer1Background"></div>
       <div id="layer3Background"></div>
-      <img src="./assets/images/UI/monster.png" id="monster" />
+      <img src="./assets/images/UI/monster.png" id="monster" alt="" />
       <div id="layer2Background">
-        <canvas id="gameCanvas"></canvas>
-        <button id="startGame">
-          <img id="startGameButton"" src="./assets/images/UI/startCloud.png" />
+        <canvas id="gameCanvas" aria-label="Animal observation area"></canvas>
+
+        <button id="startGameButton" type="button">
+          <img id="startGameImage" src="./assets/images/UI/startCloud.png" alt="Start Animal Observer" />
         </button>
-        <!-- <img id="settingsButton" src="./assets/images/UI/settings.cloud.png" /> -->
-        
-        <div id="tutorialScreen">
-          <img src="./assets/images/UI/tutorial.sprite.png" />
-          <div style="position: absolute; top: 238px; left: 608px; width: 170px">
-            <img src="./assets/images/UI/murder.gif" />
+
+        <div id="tutorialScreen" hidden>
+          <img src="./assets/images/UI/tutorial.sprite.png" alt="Tutorial illustration" />
+          <div id="tutorialText">
+            <h2>How to play</h2>
+            <p>Watch the animals for 50 seconds and count each capture.</p>
+            <p>Close guesses still earn points, and an exact report earns a perfect bonus.</p>
           </div>
-          <div style="position: absolute; top: 453px; left: 360px; width: 170px">
-            <button id="cloudButton">Continue</button>
+          <button id="cloudButton" type="button">Continue</button>
+        </div>
+
+        <div id="hud" aria-live="polite">
+          <div id="gameCountdown">Ready</div>
+          <div id="scorePanel">
+            <span id="roundLabel">Round 1</span>
+            <span id="ecosystemLabel">Field</span>
+            <span id="scoreLabel">Score 0</span>
           </div>
         </div>
-        <div id="gameCountdown"></div>
-        <div id="clipboardContainer" style="display: none">
-          <img draggable="false" id="clipboard" src="./assets/images/UI/R1clipboard.png" />
-          <div id="clipboardElements1">
-            <div style="position: absolute; top: 55px; left: 440px; width: 170px">
-              <p style="font-size: 4em; color: rgb(114, 63, 22)">1</p>
-            </div>
-            <div style="position: absolute; top: 190px; left: 460px; width: 170px">
-              <input class="clipboardInput" type="number" name="num" id="cowGuess" />
-            </div>
-            <div style="position: absolute; top: 287px; left: 460px; width: 170px">
-              <input class="clipboardInput" type="number" name="num" id="wolfGuess" />
-            </div>
-            <div style="position: absolute; top: 379px; left: 460px; width: 170px">
-              <input class="clipboardInput" type="number" name="num" id="sheepGuess" />
-            </div>
-            <div style="position: absolute; top: 548px; left: 465px; width: 170px">
-              <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
-            </div>
-            <div style="position: absolute; top: 548px; left: 565px; width: 170px">
-              <input class="clipboardCheckbox" type="radio" name="abnormal" id="" />
-            </div>
-            <div style="position: absolute; top: 620px; left: 465px; width: 170px">
-              <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
-            </div>
-            <div style="position: absolute; top: 620px; left: 565px; width: 170px">
-              <input class="clipboardCheckbox" type="radio" name="distraction" id="" />
-            </div>
-            <div style="position: absolute; top: 753px; left: 192px; width: 170px">
-              <input id="clipboardButton" type="button" value="Proceed" />
-            </div>
-          </div>
-          <div id="clipboardElements2" style="display: none">
-            <div style="position: absolute; top: 795px; left: 80px; width: 170px">
-              <input class="clipboardButton" id="clipboardLeftButton" type="button" value="Correlation" />
-            </div>
-            <div style="position: absolute; top: 794px; left: 401px; width: 170px">
-              <input class="clipboardButton" id="clipboardRightButton" type="button" value="Causation" />
-            </div>
-          </div>
-          <div id="clipboardElements3" style="display: none">
-            <div style="position: absolute; top: 100px; left: 80px; width: 560px">
-              <p id="cowKilled" style="font-size: 3.25em">Cows Killed:</p>
-            </div>
-            <div style="position: absolute; top: 200px; left: 80px; width: 560px">
-              <p id="wolvesKilled" style="font-size: 3.25em">Wolves Killed:</p>
-            </div>
-            <div style="position: absolute; top: 300px; left: 80px; width: 560px">
-              <p id="sheepKilled" style="font-size: 3.25em">Sheeps Killed:</p>
-            </div>
-            <div style="position: absolute; top: 400px; left: 80px; width: 560px">
-              <p id="cowKilledGuess" style="font-size: 3.25em">Cows Killed:</p>
-            </div>
-            <div style="position: absolute; top: 500px; left: 80px; width: 560px">
-              <p id="wolvesKilledGuess" style="font-size: 3.25em">Wolves Killed:</p>
-            </div>
-            <div style="position: absolute; top: 600px; left: 80px; width: 560px">
-              <p id="sheepKilledGuess" style="font-size: 3.25em">Sheeps Killed:</p>
-            </div>
-            <div style="position: absolute; top: 750px; left: 256px; width: 560px">
-              <input id="proceedButton" class="clipboardButton" type="button" value="Proceed" />
-            </div>
-          </div>
-        </div>
+
+        <section id="clipboardContainer" hidden>
+          <form id="guessPage" class="clipboard-page" novalidate>
+            <h2 id="clipboardTitle">Observation report</h2>
+            <p id="clipboardSubtitle">Round 1 — Field</p>
+            <div id="guessFields"></div>
+            <p id="guessError" role="alert"></p>
+            <button id="submitGuessButton" class="clipboard-button" type="submit">
+              Submit counts
+            </button>
+          </form>
+
+          <section id="resultPage" class="clipboard-page" hidden>
+            <h2>Round results</h2>
+            <p id="resultSummary">Round results</p>
+            <div id="resultRows"></div>
+            <p id="scoreSummary"></p>
+            <button id="nextRoundButton" class="clipboard-button" type="button">
+              Next round
+            </button>
+          </section>
+        </section>
       </div>
     </div>
   </body>

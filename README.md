@@ -1,31 +1,29 @@
 # Animal Observer
 
 <p align="center">
- <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/readme/mainImage.png?raw=true" width= "800px">
+  <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/readme/mainImage.png?raw=true" width="800px">
 </p>
-
-&ensp;
 
 Live Build - [https://animal.bkmcoding.com](https://animal.bkmcoding.com)
 
-### ~ A fun simple animal counting game (Unfinished)
+### ~ A fun, endless animal observation game
 
-You're a recent new hire, tasked to watch and count the interactions between these interesting animals. . . will you keep your job? . . . will you survive?
-
- &ensp;
+You're a recent new hire, tasked with watching and counting the interactions between these unusual animals. Observe carefully, file accurate reports, and keep your job as the rounds grow busier.
 
 ## Features
 
- As a scientist you must stay diligent and watchout for distractions!
+- Endless rounds that alternate between a busy **field ecosystem** and a strange **sea ecosystem**.
+- A 50-second observation phase with a three-second setup countdown.
+- Accuracy-based scoring with partial credit and a perfect-report bonus.
+- Escalating animal counts, movement speed, and harmless monster distractions.
+- A clear score breakdown after every report.
 
- Such a wide array of unique creatures across these new lands!
+## How scoring works
 
- <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/animals/cow.png?raw=true" width="100px"> <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/animals/sheep.png?raw=true" width="100px"> <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/animals/shark.png?raw=true" width="100px"> <img src="https://github.com/bkmcoding/Unessay/blob/experiment/assets/images/animals/wolf.png?raw=true" width="100px">
+Each round is worth **300 base points**, split across the animals in the active ecosystem. Close guesses still earn points, and an exact report receives a **+50 perfect-round bonus**.
 
- Make sure to stay safe. . . there may be someone or something . . . LURKING
+Read the full rules, progression table, and scoring examples in [docs/GAMEPLAY.md](docs/GAMEPLAY.md).
 
- &ensp;
+## Authors
 
- ## Authors
-
- - [@bkmcoding](https://github.com/bkmcoding)
+- [@bkmcoding](https://github.com/bkmcoding)
