@@ -291,18 +291,16 @@ canvas {
 
 .guess-input {
   width: 100%;
-  padding: 0.6cqw 0.4cqw;
-  border: 0;
-  border-bottom: 2px solid #1f1b18;
-  border-radius: 2px;
-  background: rgba(235, 238, 242, 0.65);
-  color: #1f1b18;
+  padding: 0.6rem 0.7rem;
+  border: 2px solid #6f6259;
+  border-radius: 3px;
+  background: white;
   font: inherit;
 }
 
 .guess-input.invalid {
-  border-bottom-color: #a3271d;
-  background: rgba(255, 242, 240, 0.8);
+  border-color: #a3271d;
+  background: #fff2f0;
 }
 
 #guessError {
@@ -543,5 +541,18 @@ canvas {
 
   #tutorialScreen {
     top: 5%;
+  }
+}
+
+@media (max-width: 420px), (max-height: 500px) and (orientation: landscape) {
+  #guessFields {
+    top: 14%;
+    height: 52%;
+    row-gap: 0;
+  }
+
+  .guess-row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 }
