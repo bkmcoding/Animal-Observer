@@ -1,5 +1,5 @@
 import * as constants from './constants.js'
-import Entity from './Models/Entity.js'
+import Entity, { getWorldMetrics, setWorldScale } from './Models/Entity.js'
 import { parseGuess, scoreRound } from './scoring.js'
 import {
   getDetectionRadius,
@@ -16,6 +16,7 @@ const startButton = document.querySelector('#startGameButton')
 const tutorialScreen = document.querySelector('#tutorialScreen')
 const cloudButton = document.querySelector('#cloudButton')
 const monster = document.querySelector('#monster')
+const hud = document.querySelector('#hud')
 const countdownDisplay = document.querySelector('#gameCountdown')
 const roundLabel = document.querySelector('#roundLabel')
 const ecosystemLabel = document.querySelector('#ecosystemLabel')
@@ -24,15 +25,22 @@ const clipboard = document.querySelector('#clipboardContainer')
 const clipboardImage = document.querySelector('#clipboardImage')
 const guessPage = document.querySelector('#guessPage')
 const resultPage = document.querySelector('#resultPage')
-const clipboardTitle = document.querySelector('#clipboardTitle')
-const clipboardSubtitle = document.querySelector('#clipboardSubtitle')
+const choicePage = document.querySelector('#choicePage')
+const clipboardRoundNumber = document.querySelector('#clipboardRoundNumber')
 const guessFields = document.querySelector('#guessFields')
 const guessError = document.querySelector('#guessError')
-const resultSummary = document.querySelector('#resultSummary')
 const resultRows = document.querySelector('#resultRows')
 const scoreSummary = document.querySelector('#scoreSummary')
 const guessForm = document.querySelector('#guessPage')
 const nextRoundButton = document.querySelector('#nextRoundButton')
+const correlationButton = document.querySelector('#correlationButton')
+const causationButton = document.querySelector('#causationButton')
+
+const CLIPBOARD_ART = {
+  guess: './assets/images/UI/R1clipboard.png',
+  result: './assets/images/UI/EmptyClipboard.png',
+  choice: './assets/images/UI/R2clipboard.png',
+}
 
 const selectSound = new Audio('./assets/sound/soundfx/blipSelect.wav')
 const explosionSound = new Audio('./assets/sound/soundfx/explosion.wav')
@@ -53,6 +61,7 @@ const state = {
   roundScore: 0,
   totalScore: 0,
   speedMultiplier: 1,
+  detectionRadiusBase: constants.BASE_DETECTION_RADIUS,
   detectionRadius: constants.BASE_DETECTION_RADIUS,
   monsterSweeps: 1,
   roundStartTime: 0,
@@ -64,6 +73,10 @@ const state = {
 }
 
 let CANVAS_SIZE = [window.innerWidth, window.innerHeight]
+
+function refreshScaledDetectionRadius() {
+  state.detectionRadius = state.detectionRadiusBase * getWorldMetrics().scale
+}
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -111,8 +124,35 @@ function startBackgroundMusic() {
 
 function resizeCanvas() {
   const canvasBounds = canvas.getBoundingClientRect()
-  CANVAS_SIZE[0] = Math.max(1, canvasBounds.width)
-  CANVAS_SIZE[1] = Math.max(1, canvasBounds.height)
+  const nextWidth = Math.max(1, canvasBounds.width)
+  const nextHeight = Math.max(1, canvasBounds.height)
+  const previousWidth = CANVAS_SIZE[0]
+  const previousHeight = CANVAS_SIZE[1]
+  const shouldRemap =
+    entities.length > 0 && previousWidth > 1 && previousHeight > 1 && (previousWidth !== nextWidth || previousHeight !== nextHeight)
+
+  if (shouldRemap) {
+    const scaleX = nextWidth / previousWidth
+    const scaleY = nextHeight / previousHeight
+
+    for (const entity of entities) {
+      entity.x *= scaleX
+      entity.y *= scaleY
+      entity.lastStableX *= scaleX
+    }
+
+    for (const particle of bloodParticles) {
+      particle.x *= scaleX
+      particle.y *= scaleY
+    }
+  }
+
+  CANVAS_SIZE[0] = nextWidth
+  CANVAS_SIZE[1] = nextHeight
+
+  const rawScale = Math.min(nextWidth / constants.WINDOW_WIDTH, nextHeight / constants.WINDOW_HEIGHT)
+  setWorldScale(rawScale)
+  refreshScaledDetectionRadius()
 
   const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1)
   canvas.width = Math.round(CANVAS_SIZE[0] * devicePixelRatio)
@@ -120,12 +160,13 @@ function resizeCanvas() {
   ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
 
   for (const entity of entities) {
+    entity.size = getWorldMetrics().iconWidth
     entity.clampToBounds(CANVAS_SIZE)
   }
 }
 
 function randomPositionWithinBounds() {
-  const margin = constants.EDGE_AVOID_RADIUS
+  const margin = getWorldMetrics().edgeAvoidRadius
   const maxX = Math.max(margin, CANVAS_SIZE[0] - margin)
   const maxY = Math.max(margin, CANVAS_SIZE[1] - margin)
 
@@ -136,12 +177,14 @@ function randomPositionWithinBounds() {
 }
 
 function checkTouching() {
+  const spacing = constants.ICON_WIDTH
+
   for (let i = 0; i < entities.length; i++) {
     for (let j = i + 1; j < entities.length; j++) {
       const entityA = entities[i]
       const entityB = entities[j]
 
-      if (entityA.distanceTo(entityB) < constants.ICON_WIDTH) {
+      if (entityA.distanceTo(entityB) < spacing) {
         const position = randomPositionWithinBounds()
         entityB.x = position.x
         entityB.y = position.y
@@ -195,6 +238,28 @@ function updateHud() {
   scoreLabel.textContent = `Score ${state.totalScore}`
 }
 
+function showHud() {
+  hud.hidden = false
+  updateHud()
+}
+
+function hideHud() {
+  hud.hidden = true
+  countdownDisplay.textContent = ''
+}
+
+function hideClipboardPages() {
+  guessPage.hidden = true
+  resultPage.hidden = true
+  choicePage.hidden = true
+}
+
+function resetClipboardRadios() {
+  for (const radio of guessForm.querySelectorAll('.clipboard-radio')) {
+    radio.checked = false
+  }
+}
+
 function startRound(round) {
   clearTimers()
   stopGameLoop()
@@ -202,7 +267,7 @@ function startRound(round) {
   state.round = round
   state.ecosystem = getEcosystemForRound(round)
   state.speedMultiplier = getSpeedMultiplier(round)
-  state.detectionRadius = getDetectionRadius(round)
+  state.detectionRadiusBase = getDetectionRadius(round)
   state.monsterSweeps = getMonsterSweeps(round)
   state.counts = Object.fromEntries(state.ecosystem.species.map((type) => [type, 0]))
   state.guesses = {}
@@ -213,10 +278,9 @@ function startRound(round) {
   bloodParticles = []
 
   clipboard.hidden = true
-  guessPage.hidden = true
-  resultPage.hidden = true
+  hideClipboardPages()
   monster.style.visibility = 'visible'
-  updateHud()
+  showHud()
   resizeCanvas()
   spawnEntities()
   startCountdown()
@@ -268,7 +332,7 @@ function endObservation() {
   state.phase = 'report'
   clearTimers()
   stopGameLoop()
-  countdownDisplay.textContent = '0'
+  hideHud()
   monster.style.visibility = 'hidden'
   renderGuessForm()
   playSound(pageFlipSound, 0.6)
@@ -276,46 +340,35 @@ function endObservation() {
 
 function showClipboard(mode) {
   clipboard.hidden = false
-  clipboardImage.src =
-    mode === 'result'
-      ? './assets/images/UI/R2clipboard.png'
-      : './assets/images/UI/R1clipboard.png'
+  clipboardImage.src = CLIPBOARD_ART[mode]
 }
 
-function createGuessRow(type) {
-  const row = document.createElement('div')
-  row.className = 'guess-row'
-
-  const label = document.createElement('label')
-  label.setAttribute('for', `guess-${type}`)
-  label.textContent = constants.SPECIES[type].name
-
+function createGuessInput(type, slotIndex) {
   const input = document.createElement('input')
   input.id = `guess-${type}`
-  input.className = 'guess-input'
+  input.className = `guess-input guess-slot-${slotIndex}`
   input.type = 'number'
   input.min = '0'
   input.step = '1'
   input.inputMode = 'numeric'
   input.required = true
   input.autocomplete = 'off'
-
-  row.append(label, input)
-  return row
+  input.setAttribute('aria-label', `${constants.SPECIES[type].name} count`)
+  return input
 }
 
 function renderGuessForm() {
-  clipboardTitle.textContent = 'Observation report'
-  clipboardSubtitle.textContent = `Round ${state.round} — ${state.ecosystem.label}`
+  clipboardRoundNumber.textContent = `${state.round}`
   guessFields.replaceChildren()
   guessError.textContent = ''
+  resetClipboardRadios()
 
-  for (const type of state.ecosystem.species) {
-    guessFields.append(createGuessRow(type))
-  }
+  state.ecosystem.species.forEach((type, slotIndex) => {
+    guessFields.append(createGuessInput(type, slotIndex))
+  })
 
+  hideClipboardPages()
   guessPage.hidden = false
-  resultPage.hidden = true
   showClipboard('guess')
 
   const firstInput = guessFields.querySelector('.guess-input')
@@ -362,44 +415,41 @@ function submitGuesses(event) {
   playSound(pageFlipSound, 0.6)
 }
 
-function createResultRow(row) {
-  const resultRow = document.createElement('div')
-  resultRow.className = 'result-row'
-
-  const name = document.createElement('strong')
-  name.textContent = constants.SPECIES[row.type].name
-
-  const actual = document.createElement('span')
-  actual.textContent = `Actual ${row.actual}`
-
-  const guess = document.createElement('span')
-  guess.textContent = `Guess ${row.guess}`
-
-  const error = document.createElement('span')
-  error.textContent = `Error ${row.error}`
-
-  const points = document.createElement('span')
-  points.className = 'result-points'
-  points.textContent = `${row.points} pts`
-
-  resultRow.append(name, actual, guess, error, points)
-  return resultRow
+function createResultLine(text) {
+  const line = document.createElement('div')
+  line.className = 'result-row'
+  line.textContent = text
+  return line
 }
 
 function renderResults(result) {
-  resultSummary.textContent = `Round ${state.round} — ${state.ecosystem.label}`
   resultRows.replaceChildren()
 
   for (const row of result.rows) {
-    resultRows.append(createResultRow(row))
+    resultRows.append(createResultLine(`${constants.SPECIES[row.type].name} killed: ${row.actual}`))
+  }
+
+  for (const row of result.rows) {
+    resultRows.append(createResultLine(`Your ${constants.SPECIES[row.type].name} count: ${row.guess}`))
   }
 
   const bonusText = result.bonus ? `Perfect bonus +${result.bonus}` : 'No perfect bonus'
-  scoreSummary.textContent = `Round score ${result.roundScore} · ${bonusText} · Session score ${state.totalScore}`
+  scoreSummary.textContent = `Round score ${result.roundScore} · ${bonusText} · Session ${state.totalScore}`
 
-  guessPage.hidden = true
+  hideClipboardPages()
   resultPage.hidden = false
   showClipboard('result')
+}
+
+function renderChoicePage() {
+  hideClipboardPages()
+  choicePage.hidden = false
+  showClipboard('choice')
+}
+
+function advanceFromChoice() {
+  playSound(pageFlipSound, 0.6)
+  startRound(state.round + 1)
 }
 
 function getClosestEntity(entity, candidates) {
@@ -458,7 +508,7 @@ function updateEntities(deltaTime) {
     } else if (closestTarget && entity.distanceTo(closestTarget) < state.detectionRadius) {
       entity.moveTowards(CANVAS_SIZE, closestTarget.x, closestTarget.y, deltaTime)
 
-      if (entity.distanceTo(closestTarget) < constants.CONVERSION_RADIUS) {
+      if (entity.distanceTo(closestTarget) < getWorldMetrics().conversionRadius) {
         registerCapture(closestTarget)
       }
     } else {
@@ -474,6 +524,7 @@ function drawEntity(entity) {
   entity.updateWobble()
   entity.updateDirection()
 
+  const metrics = getWorldMetrics()
   const image = imageCache[constants.SPECIES[entity.type].image]
 
   if (!image) {
@@ -491,7 +542,7 @@ function drawEntity(entity) {
     ctx.scale(-1, 1)
   }
   ctx.rotate(rotation)
-  ctx.drawImage(image, -constants.ICON_WIDTH / 2, -constants.ICON_HEIGHT / 2, constants.ICON_WIDTH, constants.ICON_HEIGHT)
+  ctx.drawImage(image, -metrics.iconWidth / 2, -metrics.iconHeight / 2, metrics.iconWidth, metrics.iconHeight)
   ctx.restore()
 }
 
@@ -591,11 +642,20 @@ cloudButton.addEventListener('click', () => {
 guessForm.addEventListener('submit', submitGuesses)
 nextRoundButton.addEventListener('click', () => {
   playSound(selectSound, 0.5)
-  startRound(state.round + 1)
+  playSound(pageFlipSound, 0.6)
+  renderChoicePage()
 })
+correlationButton.addEventListener('click', advanceFromChoice)
+causationButton.addEventListener('click', advanceFromChoice)
 
 window.addEventListener('resize', resizeCanvas)
 
+if (typeof ResizeObserver === 'function') {
+  const canvasResizeObserver = new ResizeObserver(() => {
+    resizeCanvas()
+  })
+  canvasResizeObserver.observe(canvas)
+}
+
 await preloadImages()
 resizeCanvas()
-updateHud()

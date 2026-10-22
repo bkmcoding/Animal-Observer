@@ -30,8 +30,8 @@
           <button id="cloudButton" type="button">Continue</button>
         </div>
 
-        <div id="hud" aria-live="polite">
-          <div id="gameCountdown">Ready</div>
+        <div id="hud" hidden aria-live="polite">
+          <div id="gameCountdown"></div>
           <div id="scorePanel">
             <span id="roundLabel">Round 1</span>
             <span id="ecosystemLabel">Field</span>
@@ -43,18 +43,27 @@
           <img id="clipboardImage" src="./assets/images/UI/R1clipboard.png" alt="" draggable="false" />
 
           <form id="guessPage" novalidate>
-            <div id="clipboardTitle">Observation report</div>
-            <div id="clipboardSubtitle">Round 1 — Field</div>
+            <div id="clipboardRoundNumber" aria-hidden="true"></div>
             <div id="guessFields"></div>
+            <div id="clipboardRadios">
+              <input class="clipboard-radio" type="radio" name="abnormal" value="yes" aria-label="Anything abnormal? Yes" />
+              <input class="clipboard-radio" type="radio" name="abnormal" value="no" aria-label="Anything abnormal? No" />
+              <input class="clipboard-radio" type="radio" name="distraction" value="yes" aria-label="Any distractions? Yes" />
+              <input class="clipboard-radio" type="radio" name="distraction" value="no" aria-label="Any distractions? No" />
+            </div>
             <p id="guessError" role="alert"></p>
             <button id="submitGuessButton" type="submit">Proceed</button>
           </form>
 
           <section id="resultPage" hidden>
-            <div id="resultSummary">Round results</div>
             <div id="resultRows"></div>
             <div id="scoreSummary"></div>
-            <button id="nextRoundButton" type="button">Next round</button>
+            <button id="nextRoundButton" type="button">Proceed</button>
+          </section>
+
+          <section id="choicePage" hidden>
+            <button id="correlationButton" class="clipboard-choice-button" type="button">Correlation</button>
+            <button id="causationButton" class="clipboard-choice-button" type="button">Causation</button>
           </section>
         </section>
       </div>

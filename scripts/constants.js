@@ -1,5 +1,6 @@
 export const WINDOW_WIDTH = 1920
 export const WINDOW_HEIGHT = 1080
+export const MIN_WORLD_SCALE = 0.35
 export const ENTITY_RADIUS = 5
 export const SPEED = 100
 export const BASE_DETECTION_RADIUS = 150
